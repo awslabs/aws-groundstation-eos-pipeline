@@ -1,0 +1,449 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# This template will create a CentOS Linux server to process NASA DRL data
+# from AQUA, TERRA, SMPP, etc
+
+# This cfn template:
+# - Creates an EC2 Instance to run IPOPP
+# - Installs IPOPP and all pre-req software onto the EC2 instance.
+# - Configures the IPOPP instance to auto-start ipopp-ingest at boot
+# - Creates an SNS topic to notify completion of ipopp-ingest
+# - Creates a Lambda function to auto-start the IPOPP instance
+# - Upon receipt of an SNS notification from the Reciver instance
+
+# Watch completion of the EC2 instance config in /var/log/user-data.log
+
+# After EC2 instance config is complete:
+# - Tunnel VNC traffic through an SSH session to the instance
+# - Connect ot the instance using a VNC client
+# - run 'drl/tools/dashboard.sh &' to configure required IPOPP SPAs'
+# - Stop the EC2 instance
+
+# By default the EC2 instance will keep running after ipopp-ingest.sh completes.
+# This is OK for testing. However to work in a pipeline, you need to tell the
+#   instance to shut down after completing.
+# Do this by modifying /etc/rc.local as follows:
+# runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA groundstation-nik-99-us-east-2 | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1" && systemctl poweroff -i
+
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+    Creates an EC2 instance and installs IPOPP
+
+Parameters:
+
+  SSHCidrBlock:
+    Description: The CIDR Block that the security group will allow ssh access to an instance. The CIDR Block has the form x.x.x.x/x.
+    Type: String
+    Default: "10.0.0.0/16"
+    AllowedPattern : '((\d{1,3})\.){3}\d{1,3}/\d{1,2}'
+    ConstraintDescription : must be a valid CIDR range of the form x.x.x.x/x, for example "10.0.0.0/16".
+
+  SSHKeyName:
+    Description: Name of the ssh key used to access ec2 hosts. Set this up ahead of time.
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    Default: "me-south-1"
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC to launch instances in.
+    Default: vpc-a3c323ca
+
+  SubnetId:
+    Description: Subnet to launch instances in
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-f5c6ebbf
+
+  S3Bucket:
+    Type: String
+    Description: Will store software and data received from Satellites.
+    Default: "your-s3-bucket"
+
+  InstanceType:
+    Description: EC2 Instance Type
+    Type: String
+    Default: "m5.4xlarge"
+    AllowedValues:
+      - m5.4xlarge
+      - m5d.4xlarge
+      - c5.4xlarge
+      - c5d.4xlarge
+      - m5.xlarge
+
+  IpoppPassword:
+    Type: String
+    Description: Password for the ipopp user, no special chars allowed
+    Default: 'Ch4ng3MePl34s3'
+    NoEcho: true
+    AllowedPattern: "[A-Za-z0-9]+"
+
+  SatelliteName:
+    Type: String
+    Description: Used for data processing task
+    Default: "AQUA"
+    AllowedValues:
+      - AQUA
+#      - JPSS1
+
+  NotificationEmail:
+    Default: 'example@example.com'
+    Description: "Email address to receive contact updates"
+    Type: String
+    AllowedPattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+    ConstraintDescription: "Must be a valid email adress"
+
+  ReceiverCloudFormationStackName:
+    Type: String
+    Description: The name of the CloudFormation Stack that created the receiver instance.
+    Default: 'gs-receiver-aqua'
+
+  AcceptNasaLicenseAgreement:
+    Type: String
+    Default: Reject
+    Description: "The International Planetary Observation Processing Package (IPOPP) is licensed under the NASA Open Source Software Agreement, available at https://ti.arc.nasa.gov/opensource/nosa/. Choose Accept to accept the terms of license."
+    AllowedValues:
+      - Accept
+      - Reject
+
+Conditions:
+  NasaLicenceAccepted:
+    !Equals ['Accept', !Ref AcceptNasaLicenseAgreement]
+
+Mappings:
+  # The relevant CENTOS7CLEAN amis depending on the region
+  AmiMap:
+    us-east-1:
+      ami: ami-02946ce583813a223
+    us-east-2:
+      ami: ami-0d42c2a1cd2a7d60c
+    us-west-1:
+      ami: ami-07bafb3a6a0aaeb86
+    us-west-2:
+      ami: ami-04cb5d5d2babce63b
+    me-south-1:
+      ami: ami-08529c51dbe004acb
+    eu-west-1:
+      ami: ami-0019f18ee3d4157d3
+    eu-north-1:
+      ami: ami-08270d7e5609c43fe
+    ap-southeast-2:
+      ami: ami-00240f6f25c5a080b
+
+Resources:
+
+  # Policy to give the Lambda function permission to describe, start and stop EC2 instances
+  GsIpoppLambdaRolePolicy:
+    Condition: NasaLicenceAccepted
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:StartInstances
+              - ec2:StopInstances
+            Resource:
+              - Fn::Sub:
+                - "arn:aws:ec2:${Region}:${Account}:instance/*"
+                - Region: !Ref AWS::Region
+                  Account: !Ref AWS::AccountId
+          - Effect: Allow
+            Action:
+              - ec2:DescribeInstanceStatus
+              - ec2:DescribeNetworkInterfaces
+              - groundstation:*
+            Resource:
+              - '*'
+
+  # Role using above policy - attached to Lambda function
+  GsIpoppLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: '/'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref GsIpoppLambdaRolePolicy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+
+  # Allows SNS to invoke the Lambda function
+  LambdaResourcePolicy:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref IpoppSnsHandlerLambda
+      Principal: "sns.amazonaws.com"
+      Action: "lambda:InvokeFunction"
+      #SourceArn: !Ref ReceiverSNSTopicArn
+      SourceArn:
+        Fn::ImportValue: !Sub "${ReceiverCloudFormationStackName}-SnsTopicArn"
+
+  # SNS Subscription to trigger the Lambda function
+  LambdaSnsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !GetAtt IpoppSnsHandlerLambda.Arn
+      #TopicArn: !Ref ReceiverSNSTopicArn
+      TopicArn:
+        Fn::ImportValue: !Sub "${ReceiverCloudFormationStackName}-SnsTopicArn"
+      Protocol: 'lambda'
+
+  # Lambda function to start the IPOPP instance when the Receiver Node sends a completion SNS
+  IpoppSnsHandlerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handle_sns_event
+      Runtime: python3.7
+      MemorySize: 128
+      Timeout: 120
+      Role: !GetAtt GsIpoppLambdaRole.Arn
+      Environment:
+        Variables:
+          EC2_INSTANCE_ID: !Ref ProcessorInstance
+      Code:
+        ZipFile: |
+              import json
+              import logging
+              import boto3
+              import os
+
+              logger = logging.getLogger(__name__)
+              logger.setLevel(logging.INFO)
+
+              # Get instance ID from Env Var
+              ec2_instance_id = os.environ['EC2_INSTANCE_ID']
+
+              def handle_sns_event(lambda_event, context):
+                  logger.info(f"Called with event {json.dumps(lambda_event)}")
+
+                  #   Get result from SNS Message
+                  SnsMessage = json.loads(lambda_event['Records'][0]['Sns']['Message'])
+                  result = SnsMessage["Result"]
+
+                  if result=="Success":
+                      print("Result: %s. Starting EC2 Instance" % result)
+                      ec2_client = boto3.client("ec2")
+                      logger.info(f"Checking EC2 Instance: {ec2_instance_id}")
+                      start_instance(ec2_client)
+                  else:
+                      print("Result: %s. Will not start EC2 Instance" % result)
+
+              def get_instance_state(ec2_client, instance_id):
+                  response = ec2_client.describe_instance_status(InstanceIds=[instance_id], IncludeAllInstances=True)
+                  instance_statuses = response.get("InstanceStatuses", {})
+                  assert len(instance_statuses) == 1
+
+                  instance_state = instance_statuses[0].get("InstanceState", {}).get("Name")
+                  logger.info(f"Instance {instance_id} state is {instance_state}")
+                  return instance_state
+
+              def start_instance(ec2_client):
+                  instance_state = get_instance_state(ec2_client, ec2_instance_id)
+                  if instance_state == "stopped":
+                      logger.info(f"Starting {ec2_instance_id}")
+                      ec2_client.start_instances(InstanceIds=[ec2_instance_id])
+                  else:
+                      logger.warning(f"{ec2_instance_id} is not stopped (state is {instance_state}). Skipping instance start operation")
+
+  # The EC2 instance assumes this role.
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+
+  # IAM policy providing the minimum S3 access required to the EC2 instance
+  InstanceRoleS3Policy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action:
+          - "s3:PutObject"
+          - "s3:PutObjectAcl"
+          - "s3:GetObject"
+          - "s3:DeleteObjectVersion"
+          - "s3:DeleteObject"
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ""
+            -
+              - "arn:aws:s3:::"
+              - !Ref S3Bucket
+              - "/*"
+        - Action:
+          - "s3:ListBucket"
+          Effect: Allow
+          Resource:
+            Fn::Join:
+              - ""
+              -
+                - "arn:aws:s3:::"
+                - !Ref S3Bucket
+
+      Roles:
+      - Ref: InstanceRole
+
+  # Gives the EC2 instance permission to publish the completion SNS Notification
+  InstanceRoleSNSPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action:
+          - "sns:Publish"
+          Effect: Allow
+          Resource: !Ref SNSTopic
+      Roles:
+      - Ref: InstanceRole
+
+  # SNS Topic used to send the completion notification
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName:
+        Fn::Join:
+          - "-"
+          - - "GroundStation-Process"
+            - !Ref SatelliteName
+      Subscription:
+        - Endpoint: !Ref NotificationEmail
+          Protocol: "email"
+
+  # The instance profile for your EC2 instance.
+  GeneralInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: InstanceRole
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  # The security group for your EC2 instance.
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AWS Ground Station receiver instance security group.
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # Allow SSH access from the CIDR block specified in the parameters.
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHCidrBlock
+
+  # EC2 instance with processing software installed
+  ProcessorInstance:
+    Condition: NasaLicenceAccepted
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - InstanceSecurityGroup
+      - GeneralInstanceProfile
+    Properties:
+      DisableApiTermination: false
+      IamInstanceProfile: !Ref GeneralInstanceProfile
+      ImageId:
+        Fn::FindInMap:
+          [AmiMap, Ref: "AWS::Region", ami]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref SSHKeyName
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeleteOnTermination: true
+        DeviceIndex: 0
+        SubnetId: !Ref SubnetId
+        GroupSet:
+        - !Ref InstanceSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: 300
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join:
+              - "-"
+              - - Processor
+                - !Ref AWS::StackName
+      UserData:
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+              echo `date +'%F %R:%S'` "INFO: Logging Setup" >&2
+
+              echo "Installing pre-req software"
+              yum update -y
+              yum install -y epel-release
+              yum install -y python-pip python-devel
+              yum groupinstall -y 'development tools'
+              yum install -y python3-pip
+              echo "Pre-req software install finished"
+
+              # Install AWS CLI for python 2 and 3
+              pip install --upgrade pip --user
+              pip3 install --upgrade pip --user
+              pip install awscli --upgrade --user
+              pip3 install awscli --upgrade --user
+              # Add /.local/bin to $PATH
+              echo "export PATH=~/.local/bin:$PATH" >> ~/.bash_profile
+              source ~/.bash_profile
+              echo "AWS CLI install finished"
+
+              echo "Getting IPOPP scripts"
+              mkdir -p /opt/aws/groundstation/bin/
+
+              echo "Creating /opt/aws/groundstation/bin/getSNSTopic.sh"
+              echo "export SNS_TOPIC=${SNSTopicArn}" > /opt/aws/groundstation/bin/getSNSTopic.sh
+
+              aws s3 cp s3://${S3Bucket}/software/IPOPP/ipopp-ingest.sh /opt/aws/groundstation/bin/ipopp-ingest.sh --region ${AWS::Region}
+              aws s3 cp s3://${S3Bucket}/software/IPOPP/install-ipopp.sh /opt/aws/groundstation/bin/install-ipopp.sh --region ${AWS::Region}
+              chmod +x /opt/aws/groundstation/bin/*.sh
+
+              echo "Starting IPOPP install"
+              /opt/aws/groundstation/bin/install-ipopp.sh ${SatelliteName} ${S3Bucket} ${IpoppPassword}
+
+              echo "Sending completion SNS notification"
+              export MESSAGE="IPOPP setup is complete for Satellite: ${SatelliteName}.  The EC2 instance is all setup and ready to go! It will be automatically started following a successful contact and process L0 data to L1A and L1B. If you require L2 data processing, login to the instance via VNC and run '~/drl/tools/dashboard.sh &'  Data will be processed by IPOPP, then copied to the following S3 Bucket: ${S3Bucket}.  A summary of the processing will be emailed to ${NotificationEmail}. The EC2 instance will now be stopped."
+              aws sns publish --topic-arn ${SNSTopicArn} --message "$MESSAGE" --region ${AWS::Region}
+
+              echo "Shutting down the EC2 instance"
+              shutdown -h now
+
+            - SNSTopicArn: !Ref SNSTopic
