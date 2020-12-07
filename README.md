@@ -234,6 +234,7 @@ The IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz file can be downloaded [here](https://dir
 Copying DRL-IPOPP_4.0.tar.gz is **Optional**, as if it is not available in the S3 bucket, *downloader_ipopp_4.0.sh* will be called which downloads it from the NASA DRL site.
 However, the file is ~35GB. So copying this to your S3 bucket avoids hammering the NASA DRL server and will be faster. You download DRL-IPOPP_40.tar.gz [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) 
 
+The DRL-IPOPP_4.0_PATCH_1.tar.gz file can be downloaded [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) 
 
 ### Linux / Mac
 
@@ -243,6 +244,7 @@ aws s3 cp ./install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh -
 aws s3 cp ./downloader_ipopp_4.0.sh s3://${S3_BUCKET}/software/IPOPP/downloader_ipopp_4.0.sh --region $REGION 
 aws s3 cp ./IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region $REGION 
 aws s3 cp ./DRL-IPOPP_4.0.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0.tar.gz --region $REGION
+aws s3 cp ./DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region $REGION
 ```
 
 ### Windows
@@ -253,6 +255,7 @@ aws s3 cp ./install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --
 aws s3 cp ./downloader_ipopp_4.0.sh s3://%S3_BUCKET%/software/IPOPP/downloader_ipopp_4.0.sh --region %REGION% 
 aws s3 cp ./IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region %REGION% 
 aws s3 cp ./DRL-IPOPP_4.0.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.0.tar.gz --region %REGION%
+aws s3 cp ./DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region %REGION%
 ```
 
 ##  Create the IPOPP Instance CloudFormation Stack

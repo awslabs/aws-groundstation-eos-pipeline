@@ -90,6 +90,13 @@ chmod 755 IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz
 chown ipopp:ipopp IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz
 runuser -l ipopp -c "cd /home/ipopp/drl && ./tools/install_patch.sh IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz -dontStop"
 
+echo "Install IPOPP Patch 1"
+cd /home/ipopp/drl
+aws s3 cp s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz . --region $REGION
+chmod 755 DRL-IPOPP_4.0_PATCH_1.tar.gz
+chown ipopp:ipopp DRL-IPOPP_4.0_PATCH_1.tar.gz
+runuser -l ipopp -c "cd /home/ipopp/drl && ./tools/install_patch.sh DRL-IPOPP_4.0_PATCH_1.tar.gz -dontStop"
+
 echo "Increasing java heap space for BlueMarble SPA"
 FILES=(
 h2g.sh
