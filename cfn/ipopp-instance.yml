@@ -72,7 +72,7 @@ Parameters:
   S3Bucket:
     Type: String
     Description: Will store software and data received from Satellites.
-    Default: "your-s3-bucket"
+    Default: "aws-gs-blog-me-south-1"
 
   InstanceType:
     Description: EC2 Instance Type
@@ -101,7 +101,7 @@ Parameters:
 #      - JPSS1
 
   NotificationEmail:
-    Default: 'example@example.com'
+    Default: 'user@amazon.com'
     Description: "Email address to receive contact updates"
     Type: String
     AllowedPattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
@@ -436,14 +436,42 @@ Resources:
               aws s3 cp s3://${S3Bucket}/software/IPOPP/install-ipopp.sh /opt/aws/groundstation/bin/install-ipopp.sh --region ${AWS::Region}
               chmod +x /opt/aws/groundstation/bin/*.sh
 
-              echo "Starting IPOPP install"
-              /opt/aws/groundstation/bin/install-ipopp.sh ${SatelliteName} ${S3Bucket} ${IpoppPassword}
+              echo "Creating ipopp user"
+              adduser ipopp
+              sudo usermod -aG wheel ipopp
+
+              echo "Updating nproc limit"
+              echo "* soft nproc 65535" >> /etc/security/limits.d/20-nproc.conf
+
+              echo "Install the AWSCLI for the ipopp user"
+              runuser -l ipopp -c "pip3 install awscli --upgrade --user"
+
+              echo "Installing Tiger VNC Server"
+              yum groupinstall -y "Server with GUI"
+              systemctl set-default graphical.target
+              systemctl default -f --no-block
+              yum install -y tigervnc-server
+
+              echo "Setting ipopp user password"
+              echo "ipopp:${IpoppPassword}" | chpasswd
+
+              echo "Setting ipopp user vnc password"
+              mkdir -p /home/ipopp/.vnc
+              echo ${IpoppPassword} | vncpasswd -f > /home/ipopp/.vnc/passwd
+              chown -R ipopp:ipopp /home/ipopp/.vnc
+              chmod 0600 /home/ipopp/.vnc/passwd
+
+              echo "Starting vncserver −xstartup bash"
+              runuser -l ipopp -c "vncserver"
+
+              echo "Adding vncserver to rc.local"
+              echo "runuser -l ipopp -c \"vncserver\"" >> /etc/rc.local
 
               echo "Sending completion SNS notification"
-              export MESSAGE="IPOPP setup is complete for Satellite: ${SatelliteName}.  The EC2 instance is all setup and ready to go! It will be automatically started following a successful contact and process L0 data to L1A and L1B. If you require L2 data processing, login to the instance via VNC and run '~/drl/tools/dashboard.sh &'  Data will be processed by IPOPP, then copied to the following S3 Bucket: ${S3Bucket}.  A summary of the processing will be emailed to ${NotificationEmail}. The EC2 instance will now be stopped."
+            
+              export MESSAGE="IPOPP setup requires manual intervention. Please log into the processor instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
               aws sns publish --topic-arn ${SNSTopicArn} --message "$MESSAGE" --region ${AWS::Region}
 
-              echo "Shutting down the EC2 instance"
-              shutdown -h now
+              echo "IPOPP setup requires manual intervention. Please log into this instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
 
             - SNSTopicArn: !Ref SNSTopic

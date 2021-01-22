@@ -18,7 +18,6 @@
 
 SatelliteName=$1
 S3_BUCKET=$2
-IPOPP_PASSWORD=$3
 REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//')
 
 echo "Region: $REGION"
@@ -39,16 +38,6 @@ pip3 install awscli --upgrade --user
 export PATH=~/.local/bin:$PATH
 source ~/.bash_profile
 
-echo "Creating ipopp user"
-adduser ipopp
-sudo usermod -aG wheel ipopp
-
-echo "Updating nproc limit"
-echo "* soft nproc 65535" >> /etc/security/limits.d/20-nproc.conf
-
-echo "Install the AWSCLI for the ipopp user"
-runuser -l ipopp -c "pip3 install awscli --upgrade --user"
-
 
 if [ ! -e /home/ipopp/DRL-IPOPP_4.0.tar.gz ]; then
 
@@ -57,11 +46,6 @@ if [ ! -e /home/ipopp/DRL-IPOPP_4.0.tar.gz ]; then
   if [ "$?" == "0" ] ; then
     echo "Downloading DRL-IPOPP_4.0.tar.gz from S3 Bucket: ${S3_BUCKET}"
     aws s3 cp s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0.tar.gz . --no-progress --region $REGION
-  else
-    echo "DRL-IPOPP_4.0.tar.gz not found in S3 Bucket. Downloading downloader_ipopp_4.0.sh from S3 Bucket: ${S3_BUCKET}"
-    aws s3 cp s3://${S3_BUCKET}/software/IPOPP/downloader_ipopp_4.0.sh . --region $REGION
-    chmod +x downloader_ipopp_4.0.sh
-    ./downloader_ipopp_4.0.sh
   fi
 
 else
@@ -113,32 +97,11 @@ for FILE in ${FILES[@]}; do
   sed -i "s,-Xmx[0-9]g,-Xmx8g,g" /home/ipopp/drl/SPA/BlueMarble/algorithm/h2g/bin/${FILE}
 done
 
-echo "Installing Tiger VNC Server"
-yum groupinstall -y "Server with GUI"
-systemctl set-default graphical.target
-systemctl default -f --no-block
-yum install -y tigervnc-server
-
-echo "Setting ipopp user password"
-echo "ipopp:${IPOPP_PASSWORD}" | chpasswd
-
-echo "Setting ipopp user vnc password"
-mkdir -p /home/ipopp/.vnc
-echo ${IPOPP_PASSWORD} | vncpasswd -f > /home/ipopp/.vnc/passwd
-chown -R ipopp:ipopp /home/ipopp/.vnc
-chmod 0600 /home/ipopp/.vnc/passwd
-
 echo "IPOPP installation finished"
-
-echo "Starting vncserver −xstartup bash"
-runuser -l ipopp -c "vncserver"
 
 echo "Adding logging to rc.local"
 chmod +x /etc/rc.d/rc.local
 echo "exec > >(tee /var/log/rc.local.log) 2>&1" >> /etc/rc.local
-
-echo "Adding vncserver to rc.local"
-echo "runuser -l ipopp -c \"vncserver\"" >> /etc/rc.local
 
 echo "Creating ipopp logfile"
 touch /opt/aws/groundstation/bin/ipopp-ingest.log

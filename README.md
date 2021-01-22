@@ -62,15 +62,29 @@ Make sure at minimum you have one SSH key and one VPC with an attached IGW and o
 
 NASA DRL requires everyone to register who uses their RT-STPS and IPOPP software. Browse to [the NASA DRL website](https://directreadout.sci.gsfc.nasa.gov/loginDRL.cfm?cid=263&type=software) and register using your company email address. You will need to confirm the email address.
 
-##	Download RT-STPS from NASA DRL website
+##  Create working directory
 
-**Optional:** If you already have access to these files on another S3 bucket there is no need to download these.
+### Linux / Mac
 
-Download the files below: (Or copy them from another friendly bucket - see below)
-- RT-STPS_6.0.tar.gz
-- RT-STPS_6.0_PATCH_1.tar.gz
-- RT-STPS_6.0_PATCH_2.tar.gz
-- RT-STPS_6.0_PATCH_3.tar.gz
+```bash
+export WORKING_DIR='/Users/User/Downloads/ipopp-test'
+mkdir -p $WORKING_DIR
+cd $WORKING_DIR
+```
+
+### Windows
+
+```bash
+set WORKING_DIR=\Users\User\Downloads\ipopp-test
+mkdir %WORKING_DIR%
+cd %WORKING_DIR%
+```
+
+## Clone this repo
+```bash
+git clone https://github.com/awslabs/aws-groundstation-eos-pipeline.git
+```
+
 
 #	Receiver Instance - RT-STPS
 ---
@@ -94,7 +108,6 @@ export S3_BUCKET=your-bucket-name
 
 # Create the new S3 bucket if not already created
 aws s3 mb s3://${S3_BUCKET} --region $REGION
-
 ```
 
 ### Windows
@@ -104,31 +117,41 @@ set REGION=your-aws-region
 set S3_BUCKET=your-bucket-name
 
 aws s3 mb s3://%S3_BUCKET% --region %REGION%
-
 ```
+
+##	Download RT-STPS from NASA DRL website
+
+**Optional:** If you already have access to these files on another S3 bucket there is no need to download them again.
+
+Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=263&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
+- RT-STPS_6.0.tar.gz
+- RT-STPS_6.0_PATCH_1.tar.gz
+- RT-STPS_6.0_PATCH_2.tar.gz
+- RT-STPS_6.0_PATCH_3.tar.gz
+
 
 ##	Upload RT-STPS to the new S3 bucket:
 
-If you already have the files in another S3 bucket then replace './' with 's3://YOUR-S3-BUCKET/software/RT-STPS/'. 
+If you already have the files in another S3 bucket then replace '$WORKING_DIR' with 's3://YOUR-S3-BUCKET/software/RT-STPS/'. 
 If your S3 bucket is in a different region you will need to add a --source-region tag at the end of the command. 
 
 
 ### Linux / Mac
 
 ```bash
-aws s3 cp ./RT-STPS/RT-STPS_6.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz --region $REGION 
-aws s3 cp ./RT-STPS_6.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region $REGION 
-aws s3 cp ./RT-STPS_6.0_PATCH_2.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region $REGION 
-aws s3 cp ./RT-STPS_6.0_PATCH_3.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_6.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_2.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_3.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region $REGION 
 ```
 
 ### Windows
 
 ```bash
-aws s3 cp ./RT-STPS_6.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0.tar.gz --region %REGION% 
-aws s3 cp ./RT-STPS_6.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region %REGION% 
-aws s3 cp ./RT-STPS_6.0_PATCH_2.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region %REGION% 
-aws s3 cp ./RT-STPS_6.0_PATCH_3.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_6.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_2.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_3.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region %REGION% 
 ```
 
 ## Copy the data capture application to the new bucket
@@ -138,22 +161,22 @@ The data capture application files (receivedata.py, awsgs.py, start-data-capture
 ### Linux / Mac
 
 ```bash
-aws s3 cp ./receivedata.py s3://${S3_BUCKET}/software/data-receiver/receivedata.py --region $REGION 
-aws s3 cp ./awsgs.py s3://${S3_BUCKET}/software/data-receiver/awsgs.py --region $REGION 
-aws s3 cp ./start-data-capture.sh s3://${S3_BUCKET}/software/data-receiver/start-data-capture.sh --region $REGION 
+aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/python/receivedata.py s3://${S3_BUCKET}/software/data-receiver/receivedata.py --region $REGION 
+aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/python/awsgs.py s3://${S3_BUCKET}/software/data-receiver/awsgs.py --region $REGION 
+aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/start-data-capture.sh s3://${S3_BUCKET}/software/data-receiver/start-data-capture.sh --region $REGION 
 ```
 
 ### Windows
 
 ```bash
-aws s3 cp ./receivedata.py s3://%S3_BUCKET%/software/data-receiver/receivedata.py --region %REGION% 
-aws s3 cp ./awsgs.py s3://%S3_BUCKET%/software/data-receiver/awsgs.py --region %REGION% 
-aws s3 cp ./start-data-capture.sh s3://%S3_BUCKET%/software/data-receiver/start-data-capture.sh --region %REGION% 
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\python\receivedata.py s3://%S3_BUCKET%/software/data-receiver/receivedata.py --region %REGION% 
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\python\awsgs.py s3://%S3_BUCKET%/software/data-receiver/awsgs.py --region %REGION% 
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\start-data-capture.sh s3://%S3_BUCKET%/software/data-receiver/start-data-capture.sh --region %REGION% 
 ```
 
 ## Create the CloudFormation Stack for the receiver instance
 
-Create a CFN stack using the template: aqua-rt-stps.yml.
+Create a CFN stack using the template: aqua-rtstps.yml.
 Enter parameters as follows:
 
 - Stack name: 'any value' e.g. gs-receiver-aqua
@@ -215,7 +238,6 @@ Follow these steps to create the IPOPP instance which takes the data produced by
 ```bash
 export REGION=your-aws-region
 export S3_BUCKET=your-bucket-name
-
 ```
 
 ### Windows
@@ -223,39 +245,31 @@ export S3_BUCKET=your-bucket-name
 ```bash
 set REGION=your-aws-region
 set S3_BUCKET=your-bucket-name
-
 ```
 
 ##  Copy the IPOPP files to the new bucket
-The IPOPP scripts (ipopp-ingest.sh, install-ipopp.sh and downloader_ipopp_4.0.sh) are found in this repository. 
+The IPOPP scripts (ipopp-ingest.sh, install-ipopp.sh) are found in this repository. 
 
-The IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz file can be downloaded [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=290&type=software) 
+Manually download IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=290&type=software) to $WORKING_DIR. 
 
-Copying DRL-IPOPP_4.0.tar.gz is **Optional**, as if it is not available in the S3 bucket, *downloader_ipopp_4.0.sh* will be called which downloads it from the NASA DRL site.
-However, the file is ~35GB. So copying this to your S3 bucket avoids hammering the NASA DRL server and will be faster. You download DRL-IPOPP_40.tar.gz [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) 
-
-The DRL-IPOPP_4.0_PATCH_1.tar.gz file can be downloaded [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) 
+Manually download DRL-IPOPP_4.0_PATCH_1.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR. 
 
 ### Linux / Mac
 
 ```bash
-aws s3 cp ./ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
-aws s3 cp ./install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
-aws s3 cp ./downloader_ipopp_4.0.sh s3://${S3_BUCKET}/software/IPOPP/downloader_ipopp_4.0.sh --region $REGION 
-aws s3 cp ./IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region $REGION 
-aws s3 cp ./DRL-IPOPP_4.0.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0.tar.gz --region $REGION
-aws s3 cp ./DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region $REGION
+aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
+aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
+aws s3 cp $WORKING_DIR/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region $REGION
 ```
 
 ### Windows
 
 ```bash
-aws s3 cp ./ipopp-ingest.sh s3://%S3_BUCKET%/software/IPOPP/ipopp-ingest.sh --region %REGION% 
-aws s3 cp ./install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --region %REGION% 
-aws s3 cp ./downloader_ipopp_4.0.sh s3://%S3_BUCKET%/software/IPOPP/downloader_ipopp_4.0.sh --region %REGION% 
-aws s3 cp ./IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region %REGION% 
-aws s3 cp ./DRL-IPOPP_4.0.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.0.tar.gz --region %REGION%
-aws s3 cp ./DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region %REGION%
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\ipopp-ingest.sh s3://%S3_BUCKET%/software/IPOPP/ipopp-ingest.sh --region %REGION% 
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --region %REGION% 
+aws s3 cp %WORKING_DIR%\IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region %REGION%
 ```
 
 ##  Create the IPOPP Instance CloudFormation Stack
@@ -281,10 +295,9 @@ Enter parameters as follows:
 During the creation of the CloudFormation stack an SNS topic is created.
 To receive email messages you must subscribe to the topic by clicking the link sent to the email address specified when creating the stack.
 
-##  Watch the progress
+##  Watch the progress  
 
-Once the EC2 instance is created the required software is installed and configured. You can watch this progress by connecting to the instance over an SSH connection then run the following commands.
-This takes about 1hr, so now is a great time to grab some lunch!
+The initial part of the EC2 instance set up is automatic. After it has finished you will be prompted to manually complete the set up by following the steps in the next section Processor Instance Configuration - IPOPP. You can follow the progress of the automatic part over SSH by running the following commands. This takes about 10 minutes to complete. 
 
 SSH Connection:
 ```bash
@@ -300,17 +313,15 @@ tail -F /var/log/user-data.log
 
 You now have the following created in your AWS Account:
 
-- An EC2 Instance with IPOPP installed and configured
+- An EC2 Instance running CentOS7
 - An SNS topic to notify processing completion
 - A Lambda function to auto-start the IPOPP instance, triggered by the receiver SNS Topic
 
 #	Processor Instance Configuration - IPOPP
 ---
 
-By default IPOPP creates data products which are Level 1A and Level 1B only.
-These data products are great to use for further processing using software such as polar2grid, but if we want IPOPP to create usable Level 2 products we must enable additional IPOPP Software Processing Algorithms (SPAs).
-Unfortunately, SPAs can only be configured using a GUI java application.
-Follow the steps below to connect to the server using a VPC client, then configure the required SPAs.
+These last steps in the configuration of the IPOPP processor instance must be completed manually due to constraints in the distribution and operation of the NASA DRL IPOPP software.  
+
 
 ## Prerequisites
 
@@ -323,9 +334,9 @@ and [64 bit Windows](https://bintray.com/tigervnc/stable/download_file?file_path
 
 1.	Run the command below to connect to the EC2 instance using SSH and tunnel the VNC traffic over the SSH session.
 
-```bash
-ssh -L 5901:localhost:5901 -i <path to pem file> centos@<public ip address of EC2 instance>
-```
+    ```bash
+    ssh -L 5901:localhost:5901 -i <path to pem file> centos@<public ip address of EC2 instance>
+    ```
 
 2.	Open the Tiger VNC Client application on your PC and connect to ‘localhost:1’
 3.	When prompted, enter the ipopp password you provided to the CloudFormation template in the earlier step
@@ -349,18 +360,63 @@ ssh -L 5901:localhost:5901 -i <path to pem file> centos@<public ip address of EC
 su - ipopp
 vncserver -kill <display> e.g. ‘:1’
 vncserver
-
 ```
 
+
+## Download and install DRL-IPOPP_4.0.tar.gz
+
+**Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0.tar.gz If you do not have access to the archive then follow these installation instructions.  
+
+**Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_4.0.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
+
+1. Open Firefox and navigate to https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software 
+2. Login using your credentials. 
+3. Click the blue box "Click To Download Version: 4.0" and accept the statement.
+4. Download downloader_DRL-IPOPP_4.0.sh 
+5. Open a terminal and navigate to the Downloads directory. 
+
+    ```bash
+    cd /home/ipopp/Downloads
+    ```
+
+6. Move the downloader_DRL-IPOPP_4.0.sh script to /home/ipopp/ 
+
+    ```bash
+    mv downloader_DRL-IPOPP_4.0.sh /home/ipopp/downloader_DRL-IPOPP_4.0.sh 
+    ```
+
+7. Make the download script executable and run it.
+
+    ```bash
+    cd /home/ipopp/
+    chmod +x downloader_DRL-IPOPP_4.0.sh
+    ./downloader_DRL-IPOPP_4.0.sh
+    ```
+
+8. Wait for the download to finish. This should take about 1 hour, so now is a good time to get some lunch. 
+9. Once DRL-IPOPP_4.0.tar.gz is downloaded and assembled run the install-ipopp.sh script as root. Set the needed variables. 
+
+    ```bash
+    export SatelliteName=AQUA
+    export S3Bucket=your-bucket-name 
+    sudo /opt/aws/groundstation/bin/install-ipopp.sh ${SatelliteName} ${S3Bucket} 
+    ```
+
+
 ##  IPOPP SPA Configuration
+
+By default IPOPP creates data products which are Level 1A and Level 1B only.
+These data products are great to use for further processing using software such as polar2grid, but if we want IPOPP to create usable Level 2 products we must enable additional IPOPP Software Processing Algorithms (SPAs).
+Unfortunately, SPAs can only be configured using a GUI java application.
+Follow the steps below to connect to the server using a VPC client, then configure the required SPAs.
 
 Perform the following steps within the VNC session.
 
 1. Open a terminal and run the ipopp dashboard:
 
-```bash
-~/drl/tools/dashboard.sh &
-```
+    ```bash
+    ~/drl/tools/dashboard.sh &
+    ```
 
 2.	In the dashboard, click Mode->Configuration Editor
 3.	Click Actions->Configure Projection, Select Stereographic, then Click Configure Projection
@@ -378,14 +434,15 @@ We do this by adding a shutdown command after the processing command in the /etc
 1. In an SSH or VNC session on the IPOPP server, open terminal.
 2. Switch to root
 
-```bash
-sudo su -
-```
+    ```bash
+    sudo su - 
+    ```
+
 3. Open the /etc/rc.local file
 
-```bash
-nano /etc/rc.local
-```
+    ```bash
+    nano /etc/rc.local
+    ```
 
 4. Locate the last line (It will have a call to 'ipopp-ingest.sh' in it) and add **' && systemctl poweroff -i'** to the end of the line (Without the single quotes)
 5. You can now exit the VNC and SSH session.
@@ -419,15 +476,14 @@ You can find the created files in the S3 bucket as follows:
 # Known Errors
 ---
 
-1.1 To detect and copy created data products to the S3 bucket, ipopp-ingest.sh simply calls "aws s3 sync" in a loop. Sometimes this command detects a file and tries to copy it when it is still being written to by the IPOPP process. This causes the s3 sync command to return a non-zero return code.
+1. To detect and copy created data products to the S3 bucket, ipopp-ingest.sh simply calls "aws s3 sync" in a loop. Sometimes this command detects a file and tries to copy it when it is still being written to by the IPOPP process. This causes the s3 sync command to return a non-zero return code.
 
-1.2 Occasionally the vncserver process does not start correctly, or sometime provides blank screen when you connect. To workaround this issue just kill and restart the vncserver process:
+2. Occasionally the vncserver process does not start correctly, or sometime provides blank screen when you connect. To workaround this issue just kill and restart the vncserver process:
 
-```bash
-su - ipopp
-vncserver -kill <display> e.g. ‘:1’
-vncserver
-
-```
-
-1.3 This is more of an FYI than an error. IPOPP will limit the products it produces if it is dark during the satellite contact. So if you don't see the product you need this may be the reason. For deeper troubleshooting you will need to get low-down and dirty in IPOPP and SPA error tracking - this is a bit messy and probably warrants it's own separate document!
+    ```bash
+    su - ipopp
+    vncserver -kill <display> e.g. ‘:1’
+    vncserver
+    ```
+    
+3. This is more of an FYI than an error. IPOPP will limit the products it produces if it is dark during the satellite contact. So if you don't see the product you need this may be the reason. For deeper troubleshooting you will need to get low-down and dirty in IPOPP and SPA error tracking - this is a bit messy and probably warrants it's own separate document!
