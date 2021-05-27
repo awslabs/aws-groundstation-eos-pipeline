@@ -179,6 +179,8 @@ aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\start-data-capture.s
 Create a CFN stack using the template: aqua-rtstps.yml.
 Enter parameters as follows:
 
+**Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to both SSH on port 22 and the web-based Data Defender software on port 80. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the ports and should not be done.
+
 - Stack name: 'any value' e.g. gs-receiver-aqua
 - AmiComponents: DDX 2.6.2 only
 - CFTemplateVersion: 1
@@ -278,6 +280,8 @@ aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/I
 
 Create a CFN stack using the template: ipopp-instance.yml.
 Enter parameters as follows:
+
+**Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to SSH on port 22. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the port and should not be done.
 
 - Stack name: 'any value' e.g. gs-processor-aqua
 - InstanceType: c5.xlarge is OK for most IPOPP Software Processing Algorithms (SPAs). However, you will need c5.4xlarge to use the Blue Marble MODIS Sharpened Natural/True color SPAs.
