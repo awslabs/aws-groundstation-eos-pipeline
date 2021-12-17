@@ -143,7 +143,6 @@ Resources:
         !Ref AMIComponents
 
   GroundStationAmazonMachineImageNameRetrievalLambdaRole:
-    Condition: ShouldCreateInstance
     Type: AWS::IAM::Role
     Properties:
       Path: '/'
@@ -155,6 +154,17 @@ Resources:
                 Action:
                   - 'ec2:DescribeImages'
                 Resource: '*'
+              - Action:
+                - "s3:GetObject"
+                Effect: Allow
+                Resource:
+                  Fn::Join:
+                  - ""
+                  -
+                    - "arn:aws:s3:::"
+                    - space-solutions-
+                    - !Ref "AWS::Region"
+                    - "/*"
           PolicyName: EC2DescribeImagesOnly
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
@@ -167,7 +177,6 @@ Resources:
             Action: ['sts:AssumeRole']
 
   GroundStationAmazonMachineImageNameRetrievalLambda:
-      Condition: ShouldCreateInstance
       Type: AWS::Lambda::Function
       Properties:
         Handler: index.lambda_ami_lookup_event
@@ -214,25 +223,17 @@ Resources:
                 ami_components = event['ResourceProperties']['AMIComponents']
                 ami_filter = AMI_FILTER_DICT.get(ami_components, "Invalid AMI Component String")
                 try:
+                    s3_client = boto3.client('s3')
+                    s3_client.download_file('space-solutions-'+region, 'gs/gs-ami-account-ids.txt', '/tmp/gs-ami-account-ids.txt')
+                    ami_acc_str=open('/tmp/gs-ami-account-ids.txt').read()
+                    ami_acc_list = ami_acc_str.replace("'","").split(",\n")
+
                     ec2_client = boto3.client('ec2', region_name=region) # Change as appropriate
                     images = ec2_client.describe_images(Filters=[
                     {
                         'Name': 'name',
                         'Values': [ami_filter]
-                    },], Owners=[
-                    '041725999811',
-                    '691644195454',
-                    '098997649558',
-                    '955246073805',
-                    '289523357333',
-                    '575398917104',
-                    '362772987460',
-                    '174295635607',
-                    '139317062897',
-                    '753771033039',
-                    '151322352249',
-                    '242508736488',
-                    ])
+                    },], Owners=ami_acc_list)
                     images_sorted_by_newest_date_in_name = sorted(images['Images'], key=lambda k: k['Name'], reverse=True)
                     response_data["Id"] = images_sorted_by_newest_date_in_name[0]['ImageId']
                     response_data["ImageName"] = images_sorted_by_newest_date_in_name[0]['Name']
