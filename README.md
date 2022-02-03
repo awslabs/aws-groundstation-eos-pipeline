@@ -448,7 +448,12 @@ We do this by adding a shutdown command after the processing command in the /etc
     nano /etc/rc.local
     ```
 
-4. Locate the last line (It will have a call to 'ipopp-ingest.sh' in it) and add **' && systemctl poweroff -i'** to the end of the line (Without the single quotes)
+4. Locate the last line (It will have a call to 'ipopp-ingest.sh' in it) and add **' && systemctl poweroff -i'** to the end of the line, after the double quotes and without the single quotes. The line should look like the one below: 
+
+    ```bash
+    runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA <bucket-name> | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1" && systemctl poweroff -i
+    ```
+
 5. You can now exit the VNC and SSH session.
 
 
