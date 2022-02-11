@@ -43,7 +43,7 @@ The levels are summarized below. For more information click [here](https://scien
 
 ##  AWS CLI Configured
 
-Download the latest AWS CLI and configure it with an IAM User role with privileges to the AWS Account you want to use.
+[Install the latest AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) and [configure it](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config) with an IAM User role with privileges to the AWS Account you want to use.
 If in doubt, use admin for testing, but create a Least Privileged Access (LPA) IAM user/role for any other environments.
 
 ##  Ground Station setup in your AWS Account
@@ -56,13 +56,16 @@ Send an email to aws-groundstation@amazon.com with the following details:
 
 ##	A VPC with public subnets, plus an SSH key for accessing EC2 instance(s)
 
-Make sure at minimum you have one SSH key and one VPC with an attached IGW and one public subnet. This must be in the region you are downlinking to.
+Make sure at minimum you have one SSH key and one VPC with an attached IGW and one public subnet. 
+You can use the default VPC provided in the region. Follow [these instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair) to create an EC2 SSH key in the region that you will be deploying your EC2 resources. 
 
 ##	Register on NASA DRL website
 
 NASA DRL requires everyone to register who uses their RT-STPS and IPOPP software. Browse to [the NASA DRL website](https://directreadout.sci.gsfc.nasa.gov/loginDRL.cfm?cid=263&type=software) and register using your company email address. You will need to confirm the email address.
 
 ##  Create working directory
+
+Execute these commands on your local machine command line. 
 
 ### Linux / Mac
 
@@ -81,10 +84,13 @@ cd %WORKING_DIR%
 ```
 
 ## Clone this repo
+Install Git by following [these instructions](https://github.com/git-guides/install-git).
+
 ```bash
 git clone https://github.com/awslabs/aws-groundstation-eos-pipeline.git
 ```
 
+Alternatively, you can download this GitHub repository by clicking Code -> Download ZIP at the top of this page. 
 
 #	Receiver Instance - RT-STPS
 ---
@@ -96,9 +102,11 @@ Once the data is uploaded and SNS Notification is sent which triggers the IPOPP 
 ##	Create S3 bucket
 
 Setup some variables, then create the new S3 bucket.
-Create this in the region you are downlinking to.
+Create this in the region where your EC2 downlink resources will be. 
 
 Edit the REGION and S3_BUCKET variables below, then execute the code.
+
+Execute these commands on your local machine command line. 
 
 ### Linux / Mac
 
@@ -135,6 +143,7 @@ Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.g
 If you already have the files in another S3 bucket then replace '$WORKING_DIR' with 's3://YOUR-S3-BUCKET/software/RT-STPS/'. 
 If your S3 bucket is in a different region you will need to add a --source-region tag at the end of the command. 
 
+Execute these commands on your local machine command line. 
 
 ### Linux / Mac
 
@@ -158,6 +167,8 @@ aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_3.tar.gz s3://%S3_BUCKET%/software/RT-
 
 The data capture application files (receivedata.py, awsgs.py, start-data-capture.sh) are all found in this repository. 
 
+Execute these commands on your local machine command line. 
+
 ### Linux / Mac
 
 ```bash
@@ -176,14 +187,14 @@ aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\start-data-capture.s
 
 ## Create the CloudFormation Stack for the receiver instance
 
-Create a CFN stack using the template: aqua-rtstps.yml.
-Enter parameters as follows:
+Create a CFN stack using the template: aqua-rt-stps.yml. [Learn how to create a CFN stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html). On the [stack creation console](https://console.aws.amazon.com/cloudformation.) click Create Stack -> With New Resource. Then select the "Template is ready" radio button and "Upload a template file" radio button. Upload the aqua-rt-stps.yml file here. Do not edit the aqua-rt-stps.yml file manually!
+
+Enter parameters as follows in the CloudFormation console:
 
 **Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to both SSH on port 22 and the web-based Data Defender software on port 80. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the ports and should not be done.
 
 - Stack name: 'any value' e.g. gs-receiver-aqua
 - AmiComponents: DDX 2.6.2 only
-- CFTemplateVersion: 1
 - CreateReceiverInstance: true
 - InstanceType: c5.4xlarge
 - NotificationEmail: 'your-email-address'
@@ -202,14 +213,14 @@ To receive email messages you must subscribe to the topic by clicking the link s
 ##  Watch the progress
 
 Once the EC2 instance is created the required software is installed and configured.
-You can watch this progress by connecting to the instance over an SSH connection then run the following commands:
+You can watch this progress by connecting to the instance using [SSH for Linux/Mac users](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html) or by using [PuTTY for Windows users](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html). The username is "ec2-user". Example command for Linux/Mac to be run on your local machine: 
 
-SSH Connection:
 ```bash
 ssh -i <path-to-ssh-key-file> ec2-user@<instance-public-ip>
 ```
 
-Check the user-data logfile:
+After logging in to the EC2 instance you can run this command in the terminal session to check the user-data logfile: 
+
 ```bash
 tail -F /var/log/user-data.log
 ```
@@ -236,6 +247,7 @@ You now have the following created in your AWS Account:
 ---
 
 Follow these steps to create the IPOPP instance which takes the data produced by the receiver node (RT-STPS) to create usable level 2 earth observation data products.
+Execute these commands on your local machine command line.
 
 ```bash
 export REGION=your-aws-region
@@ -255,6 +267,8 @@ The IPOPP scripts (ipopp-ingest.sh, install-ipopp.sh) are found in this reposito
 Manually download IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=290&type=software) to $WORKING_DIR. 
 
 Manually download DRL-IPOPP_4.0_PATCH_1.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR. 
+
+Execute these commands on your local machine command line.
 
 ### Linux / Mac
 
@@ -276,9 +290,9 @@ aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/I
 
 ##  Create the IPOPP Instance CloudFormation Stack
 
-**Note:** before continuing, subscribe to the *CentOS 7 (x86_64) - with Updates HVM* product in the Marketplace by clicking [here](https://aws.amazon.com/marketplace/server/configuration?productId=b7ee8a69-ee97-4a49-9e68-afaee216db2e&ref_=psb_cfg_continue)
+**Note:** before continuing, subscribe to the *CentOS 7 (x86_64) - with Updates HVM* product in the Marketplace by clicking [here](https://aws.amazon.com/marketplace/server/configuration?productId=b7ee8a69-ee97-4a49-9e68-afaee216db2e&ref_=psb_cfg_continue) You just have to click the Accept Terms orange box. 
 
-Create a CFN stack using the template: ipopp-instance.yml.
+Create a CFN stack using the template: ipopp-instance.yml. Follow the same procedure as for the aqua-rt-stps.yml file. Do not edit the ipopp-instance.yml file manually!
 Enter parameters as follows:
 
 **Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to SSH on port 22. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the port and should not be done.
@@ -329,14 +343,14 @@ These last steps in the configuration of the IPOPP processor instance must be co
 
 ## Prerequisites
 
-Download and install the Tiger VNC Client from [here](https://bintray.com/tigervnc/stable/tigervnc).
-Or use the following quick-links for [Linux](https://bintray.com/tigervnc/stable/download_file?file_path=tigervnc-1.10.1.x86_64.tar.gz),
-[Mac](https://bintray.com/tigervnc/stable/download_file?file_path=TigerVNC-1.10.1.dmg)
-and [64 bit Windows](https://bintray.com/tigervnc/stable/download_file?file_path=vncviewer64-1.10.1.exe).
+Download and install the Tiger VNC Client from [here](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/).
+Or use the following quick-links for [Linux](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/tigervnc-1.12.0.x86_64.tar.gz/download),
+[Mac](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/TigerVNC-1.12.0.dmg/download)
+and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/vncviewer64-1.12.0.exe/download).
 
 ## VNC Setup - Linux / Mac
 
-1.	Run the command below to connect to the EC2 instance using SSH and tunnel the VNC traffic over the SSH session.
+1.	Run the command below to connect to the EC2 instance from your local machine using SSH and tunnel the VNC traffic over the SSH session.
 
     ```bash
     ssh -L 5901:localhost:5901 -i <path to pem file> centos@<public ip address of EC2 instance>
@@ -372,6 +386,8 @@ vncserver
 **Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0.tar.gz If you do not have access to the archive then follow these installation instructions.  
 
 **Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_4.0.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
+
+Execute these commands as the centos user on the processor EC2 instance after logging in with SSH or PuTTY. 
 
 1. Open Firefox and navigate to https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software 
 2. Login using your credentials. 
@@ -414,7 +430,7 @@ These data products are great to use for further processing using software such 
 Unfortunately, SPAs can only be configured using a GUI java application.
 Follow the steps below to connect to the server using a VPC client, then configure the required SPAs.
 
-Perform the following steps within the VNC session.
+Perform the following steps within the VNC session on the IPOPP EC2 instance.  
 
 1. Open a terminal and run the ipopp dashboard:
 
