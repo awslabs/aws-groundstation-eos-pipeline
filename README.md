@@ -96,7 +96,7 @@ Alternatively, you can download this GitHub repository by clicking Code -> Downl
 ---
 
 Follow the steps below to configure AWS GroundStation to process data from the AQUA Satellite and create an EC2 instance to receive the data.
-The EC2 instance receives the data, processes it using NASA's RealTime Satellite Telemetry Processing Software (RT-SPTS) and uploads the data to S3.
+The EC2 instance receives the data, processes it using NASA's RealTime Satellite Telemetry Processing Software (RT-STPS) and uploads the data to S3.
 Once the data is uploaded and SNS Notification is sent which triggers the IPOPP Processing node which creates the usable data products.
 
 ##	Create S3 bucket
