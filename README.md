@@ -372,7 +372,10 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12
 8.	Open the Tiger VNC Client application on your PC and connect to ‘localhost:1’
 9.	When prompted, enter the ipopp password you provided to the CloudFormation template in the earlier step
 
-**Note:** If the Tiger VNC client cannot connect, or you see only a blank screen you may need to restart the vncserver process on the instance. To do this run the commands below in the SSH session to start the vnc server as the ipopp user:
+**Note1:** Typically EC2 instances within your AWS account use ".pem" SSH key format, but PuTTy requires ".ppk" format for the SSH key.
+Please download and install PuTTygen [here](https://www.puttygen.com/), and convert the ".pem" SSH key into a ".ppk" SSH key.
+
+**Note2:** If the Tiger VNC client cannot connect, or you see only a blank screen you may need to restart the vncserver process on the instance. To do this run the commands below in the SSH session to start the vnc server as the ipopp user:
 
 ```bash
 su - ipopp
