@@ -180,7 +180,7 @@ Resources:
       Type: AWS::Lambda::Function
       Properties:
         Handler: index.lambda_ami_lookup_event
-        Runtime: python3.6
+        Runtime: python3.9
         MemorySize: 128
         Timeout: 5
         Role: !GetAtt GroundStationAmazonMachineImageNameRetrievalLambdaRole.Arn
