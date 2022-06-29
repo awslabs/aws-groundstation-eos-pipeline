@@ -20,7 +20,7 @@ The solution operates as follows:
 5. The Data Capture Application starts up RT-STPS which processes the raw data into Level 0 data
 6. The Data Capture Application pushes the data to S3, sends an SNS notification, then shuts down.
 7. The SNS Notification triggers a Lambda function which starts up the Processor EC2 instance.
-8. The Processor EC2 Instance pulls the data from S3, the processes it using IPOPP.
+8. The Processor EC2 Instance pulls the data from S3, then processes it using IPOPP.
 9. The Processor EC2 Instance pushes the Level 1A, Level 1B and Level 2 data it produces to S3.
 10. The Processor EC2 Instance sends an SNS notification, then shuts down.
 
@@ -96,7 +96,7 @@ Alternatively, you can download this GitHub repository by clicking Code -> Downl
 ---
 
 Follow the steps below to configure AWS GroundStation to process data from the AQUA Satellite and create an EC2 instance to receive the data.
-The EC2 instance receives the data, processes it using NASA's RealTime Satellite Telemetry Processing Software (RT-SPTS) and uploads the data to S3.
+The EC2 instance receives the data, processes it using NASA's RealTime Satellite Telemetry Processing Software (RT-STPS) and uploads the data to S3.
 Once the data is uploaded and SNS Notification is sent which triggers the IPOPP Processing node which creates the usable data products.
 
 ##	Create S3 bucket
