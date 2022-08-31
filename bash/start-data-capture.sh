@@ -96,32 +96,53 @@ fi
 #	RT-STPS Install (if needed)
 #	=============================
 
+# V6 - OLD
 #	Check if RT-STPS is installed already
-if [ -d "/root/rt-stps" ]; then
-	export NOW=$(date '+%Y%m%d-%H:%M:%S')
-	echo "$NOW	RT-STPS already installed, skipping installation"
-else
-	export NOW=$(date '+%Y%m%d-%H:%M:%S')
-	echo "$NOW	Getting RT-STPS software from S3 bucket: ${S3_BUCKET}"
-	cd ~
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz . --region $REGION || handleError "Error code ${?}. Failed to get RT-STPS from s3://${S3_BUCKET}/software/RT-STPS/" "FATAL"
+# if [ -d "/root/rt-stps" ]; then
+# 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
+# 	echo "$NOW	RT-STPS already installed, skipping installation"
+# else
+# 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
+# 	echo "$NOW	Getting RT-STPS software from S3 bucket: ${S3_BUCKET}"
+# 	cd ~
+# 	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz . --region $REGION && \
+# 	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz . --region $REGION && \
+# 	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz . --region $REGION && \
+# 	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz . --region $REGION || handleError "Error code ${?}. Failed to get RT-STPS from s3://${S3_BUCKET}/software/RT-STPS/" "FATAL"
 
-	export NOW=$(date '+%Y%m%d-%H:%M:%S')
-	echo "$NOW	Installing RT-STPS..."
-	cd ~
-	# Extract main package
-	tar xzf RT-STPS_6.0.tar.gz
-	# Apply patch 2
-	cp ~/rt-stps/config/jpss1.xml ~/rt-stps/config/jpss1.xml.old
-	tar xzf RT-STPS_6.0_PATCH_2.tar.gz
-	# Apply patch 3
-	tar xzf RT-STPS_6.0_PATCH_3.tar.gz
-	# Install
-	cd rt-stps
-	./install.sh
+# 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
+# 	echo "$NOW	Installing RT-STPS..."
+# 	cd ~
+# 	# Extract main package
+# 	tar xzf RT-STPS_6.0.tar.gz
+# 	# Apply patch 2
+# 	cp ~/rt-stps/config/jpss1.xml ~/rt-stps/config/jpss1.xml.old
+# 	tar xzf RT-STPS_6.0_PATCH_2.tar.gz
+# 	# Apply patch 3
+# 	tar xzf RT-STPS_6.0_PATCH_3.tar.gz
+# 	# Install
+# 	cd rt-stps
+# 	./install.sh
+# fi
+
+# Check if RT-STPS is installed already
+if [ -d "/root/rt-stps" ]; then
+  export NOW=$(date '+%Y%m%d-%H:%M:%S')
+  echo "$NOW  RT-STPS already installed, skipping installation"
+else
+  export NOW=$(date '+%Y%m%d-%H:%M:%S')
+  echo "$NOW  Getting RT-STPS software from S3 bucket: ${S3_BUCKET}"
+  cd ~
+  aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz . --region $REGION || handleError "Error code ${?}. Failed to get RT-STPS_7.0.tar.gz from s3://${S3_BUCKET}/software/RT-STPS/" "FATAL"
+
+  export NOW=$(date '+%Y%m%d-%H:%M:%S')
+  echo "$NOW  Installing RT-STPS..."
+  cd ~
+  # Extract main package
+  tar xzf RT-STPS_7.0.tar.gz
+  # Install
+  cd rt-stps
+  ./install.sh
 fi
 
 #	=============================
