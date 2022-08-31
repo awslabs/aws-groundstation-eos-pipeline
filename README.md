@@ -131,11 +131,8 @@ aws s3 mb s3://%S3_BUCKET% --region %REGION%
 
 **Optional:** If you already have access to these files on another S3 bucket there is no need to download them again.
 
-Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=263&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
-- RT-STPS_6.0.tar.gz
-- RT-STPS_6.0_PATCH_1.tar.gz
-- RT-STPS_6.0_PATCH_2.tar.gz
-- RT-STPS_6.0_PATCH_3.tar.gz
+Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=325&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
+- RT-STPS_7.0.tar.gz
 
 
 ##	Upload RT-STPS to the new S3 bucket:
@@ -148,19 +145,13 @@ Execute these commands on your local machine command line.
 ### Linux / Mac
 
 ```bash
-aws s3 cp $WORKING_DIR/RT-STPS_6.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_2.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_3.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_7.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz --region $REGION 
 ```
 
 ### Windows
 
 ```bash
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_2.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_3.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_7.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_7.0.tar.gz --region %REGION% 
 ```
 
 ## Copy the data capture application to the new bucket
