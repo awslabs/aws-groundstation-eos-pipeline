@@ -87,10 +87,10 @@ Parameters:
 
   IpoppPassword:
     Type: String
-    Description: Password for the ipopp user, no special chars allowed
+    Description: Password for the ipopp user, minimul length 8 chars, only alpha-numeric chars (upper/lower case), no special chars allowed
     Default: 'Ch4ng3MePl34s3'
     NoEcho: true
-    AllowedPattern: "[A-Za-z0-9]+"
+    AllowedPattern: "[A-Za-z0-9-]{8,}+"
 
   SatelliteName:
     Type: String
@@ -128,21 +128,21 @@ Mappings:
   # The relevant CENTOS7CLEAN amis depending on the region
   AmiMap:
     us-east-1:
-      ami: ami-02946ce583813a223
+      ami: ami-0affd4508a5d2481b
     us-east-2:
-      ami: ami-0d42c2a1cd2a7d60c
+      ami: ami-01e36b7901e884a10
     us-west-1:
-      ami: ami-07bafb3a6a0aaeb86
+      ami: ami-098f55b4287a885ba
     us-west-2:
-      ami: ami-04cb5d5d2babce63b
+      ami: ami-0bc06212a56393ee1
     me-south-1:
-      ami: ami-08529c51dbe004acb
+      ami: ami-011c71a894b10f35b
     eu-west-1:
-      ami: ami-0019f18ee3d4157d3
+      ami: ami-0b850cf02cc00fdc8
     eu-north-1:
-      ami: ami-08270d7e5609c43fe
+      ami: ami-05788af9005ef9a93
     ap-southeast-2:
-      ami: ami-00240f6f25c5a080b
+      ami: ami-0b2045146eb00b617
 
 Resources:
 
