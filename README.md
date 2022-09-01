@@ -348,6 +348,7 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12
     ```
 
 2.	Open the Tiger VNC Client application on your PC and connect to ‘localhost:1’
+    (If you are seeing just a black screen, please refer to Note 2 below.)
 3.	When prompted, enter the ipopp password you provided to the CloudFormation template in the earlier step
 
 
