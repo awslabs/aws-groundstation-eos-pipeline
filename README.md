@@ -131,11 +131,8 @@ aws s3 mb s3://%S3_BUCKET% --region %REGION%
 
 **Optional:** If you already have access to these files on another S3 bucket there is no need to download them again.
 
-Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=263&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
-- RT-STPS_6.0.tar.gz
-- RT-STPS_6.0_PATCH_1.tar.gz
-- RT-STPS_6.0_PATCH_2.tar.gz
-- RT-STPS_6.0_PATCH_3.tar.gz
+Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=325&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
+- RT-STPS_7.0.tar.gz
 
 
 ##	Upload RT-STPS to the new S3 bucket:
@@ -148,19 +145,13 @@ Execute these commands on your local machine command line.
 ### Linux / Mac
 
 ```bash
-aws s3 cp $WORKING_DIR/RT-STPS_6.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_2.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_6.0_PATCH_3.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_7.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz --region $REGION 
 ```
 
 ### Windows
 
 ```bash
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_2.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_6.0_PATCH_3.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_7.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_7.0.tar.gz --region %REGION% 
 ```
 
 ## Copy the data capture application to the new bucket
@@ -188,6 +179,9 @@ aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\start-data-capture.s
 ## Create the CloudFormation Stack for the receiver instance
 
 Create a CFN stack using the template: aqua-rt-stps.yml. [Learn how to create a CFN stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html). On the [stack creation console](https://console.aws.amazon.com/cloudformation) click Create Stack -> With New Resource. Then select the "Template is ready" radio button and "Upload a template file" radio button. Upload the aqua-rt-stps.yml file here. Do not edit the aqua-rt-stps.yml file manually!
+
+Here is the link to the .yml file:
+https://github.com/awslabs/aws-groundstation-eos-pipeline/tree/main/cfn
 
 Enter parameters as follows in the CloudFormation console:
 
@@ -293,20 +287,27 @@ aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/I
 **Note:** before continuing, subscribe to the *CentOS 7 (x86_64) - with Updates HVM* product in the Marketplace by clicking [here](https://aws.amazon.com/marketplace/server/configuration?productId=b7ee8a69-ee97-4a49-9e68-afaee216db2e&ref_=psb_cfg_continue) You just have to click the Accept Terms orange box. 
 
 Create a CFN stack using the template: ipopp-instance.yml. Follow the same procedure as for the aqua-rt-stps.yml file. Do not edit the ipopp-instance.yml file manually!
+
+Here is the link to the .yml file:
+https://github.com/awslabs/aws-groundstation-eos-pipeline/tree/main/cfn
+
 Enter parameters as follows:
 
 **Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to SSH on port 22. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the port and should not be done.
 
 - Stack name: 'any value' e.g. gs-processor-aqua
+- AcceptNasaLicenseAgreement: Accept
 - InstanceType: c5.xlarge is OK for most IPOPP Software Processing Algorithms (SPAs). However, you will need c5.4xlarge to use the Blue Marble MODIS Sharpened Natural/True color SPAs.
+- IpoppPassword: 'Enter a password to use for the ipopp user account and VNC password on the EC2 instance'
+- NotificationEmail: 'Your email where you want to receive all the notifications'
+- ReceiverCloudFormationStackName: 'StackName for the receiver instance'
 - S3Bucket: 'your-bucket-name' (The one you created earlier)
 - SSHCidrBlock: 'your-public-ip'/32. If needed get it from https://whatismyip.com. Ensure you add “/32” to the end of the IP address
 - SSHKeyName: 'your-ssh-key-name'
 - SatelliteName: AQUA
 - SubnetId: 'A Public Subnet'
 - VpcId: 'Select the VPC containing the above public subnet'
-- IpoppPassword: 'Enter a password to use for the ipopp user account and VNC password on the EC2 instance'
-- AcceptNasaLicenseAgreement: Accept
+
 
 ##  Subscribe to the SNS topic
 
@@ -357,6 +358,7 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12
     ```
 
 2.	Open the Tiger VNC Client application on your PC and connect to ‘localhost:1’
+    (If you are seeing just a black screen, please refer to Note 2 below.)
 3.	When prompted, enter the ipopp password you provided to the CloudFormation template in the earlier step
 
 
