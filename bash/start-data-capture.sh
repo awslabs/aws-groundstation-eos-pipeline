@@ -104,21 +104,17 @@ else
 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
 	echo "$NOW	Getting RT-STPS software from S3 bucket: ${S3_BUCKET}"
 	cd ~
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_1.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_2.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_6.0_PATCH_3.tar.gz . --region $REGION || handleError "Error code ${?}. Failed to get RT-STPS from s3://${S3_BUCKET}/software/RT-STPS/" "FATAL"
+	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz . --region $REGION && \
+	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz . --region $REGION || handleError "Error code ${?}. Failed to get RT-STPS from s3://${S3_BUCKET}/software/RT-STPS/" "FATAL"
 
 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
 	echo "$NOW	Installing RT-STPS..."
 	cd ~
 	# Extract main package
-	tar xzf RT-STPS_6.0.tar.gz
-	# Apply patch 2
+	tar xzf RT-STPS_7.0.tar.gz
+	# Apply patch 1
 	cp ~/rt-stps/config/jpss1.xml ~/rt-stps/config/jpss1.xml.old
-	tar xzf RT-STPS_6.0_PATCH_2.tar.gz
-	# Apply patch 3
-	tar xzf RT-STPS_6.0_PATCH_3.tar.gz
+	tar xzf RT-STPS_7.0_PATCH_1.tar.gz
 	# Install
 	cd rt-stps
 	./install.sh

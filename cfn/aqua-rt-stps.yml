@@ -180,7 +180,7 @@ Resources:
       Type: AWS::Lambda::Function
       Properties:
         Handler: index.lambda_ami_lookup_event
-        Runtime: python3.6
+        Runtime: python3.9
         MemorySize: 128
         Timeout: 5
         Role: !GetAtt GroundStationAmazonMachineImageNameRetrievalLambdaRole.Arn
@@ -343,7 +343,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 
   InstanceRoleS3Policy:
     Type: AWS::IAM::ManagedPolicy
@@ -803,7 +803,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: index.handle_cloudwatch_event
-      Runtime: python3.7
+      Runtime: python3.9
       MemorySize: 128
       Timeout: 120
       Role: !GetAtt GroundStationCloudWatchEventHandlerLambdaRole.Arn
