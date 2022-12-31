@@ -394,8 +394,7 @@ Execute these commands as the centos user on the processor EC2 instance after lo
 6. Move the downloader_DRL-IPOPP_4.1.sh script to /home/ipopp/ 
 
     ```bash
-    mv downloader_DRL-IPOPP_4.1.sh /home/ipopp/downloader_DRL-IPOPP_4.1.sh 
-    mv DRL-* /home/ipopp/
+    mv downloader_DRL-IPOPP_4.1.sh /home/ipopp/downloader_DRL-IPOPP_4.1.sh
     ```
 
 7. Make the download script executable and run it.
@@ -406,7 +405,7 @@ Execute these commands as the centos user on the processor EC2 instance after lo
     ./downloader_DRL-IPOPP_4.1.sh
     ```
 
-8. Wait for the download to finish. This should take about 1 hour, so now is a good time to get some lunch. 
+8. Wait for the download to finish. This should take about 1 hour or so. 
 9. Once DRL-IPOPP_4.1.tar.gz is downloaded and assembled run the install-ipopp.sh script as root. Set the needed variables. 
 
     ```bash
@@ -431,7 +430,7 @@ Perform the following steps within the VNC session on the IPOPP EC2 instance.
     ~/drl/tools/dashboard.sh &
     ```
 
-2.	In the dashboard, click Mode->Configuration Editor
+2.	In the dashboard, click Mode->IPOPP Configuration Editor
 3.	Click Actions->Configure Projection, Select Stereographic, then click Configure Projection
 4.	Enable other SPA modules as desired by simply clicking on them. You may want to enable all of SPAs in your initial experimentation to see the data created by each SPA.
 5.	Once you have finished enabling SPAs, click Actions->Save IPOPP Configuration

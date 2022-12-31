@@ -29,7 +29,6 @@ yum install -y wget nano libaio tcsh bc ed rsync perl java libXp libaio-devel
 yum install -y /lib/ld-linux.so.2
 yum install -y epel-release
 yum install -y python-pip python-devel
-yum install ImageMagick
 #yum groupinstall -y 'development tools'
 yum install -y ImageMagick
 yum install -y python3-pip
@@ -155,5 +154,3 @@ echo "   the relevant level 2 SPAs must be enabled in the IPOPP dashboard"
 echo ""
 echo "======================================================================"
 
-#echo "Starting IPOPP Ingest"
-#runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh ${SatelliteName} ${S3_BUCKET} | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1"
