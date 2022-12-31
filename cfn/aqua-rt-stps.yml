@@ -76,17 +76,17 @@ Parameters:
     Description: Name of the ssh key used to access ec2 hosts. Set this up ahead of time.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-    Default: "us-east-2"
+    Default: ""
 
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC to launch instances in.
-    Default: "vpc-0506d26c"
+    Default: ""
 
   SubnetId:
     Description: Subnet to launch instances in
     Type: AWS::EC2::Subnet::Id
-    Default: "subnet-0a1b1040"
+    Default: ""
 
   InstanceType:
     Description: EC2 Instance Type
@@ -735,7 +735,7 @@ Resources:
                 }
               }
             }'
-          demodulationConfig:
+          DemodulationConfig:
             unvalidatedJSON: '{
               "type":"OQPSK",
               "oqpsk":{

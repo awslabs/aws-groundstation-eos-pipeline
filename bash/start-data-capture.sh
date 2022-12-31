@@ -96,6 +96,7 @@ fi
 #	RT-STPS Install (if needed)
 #	=============================
 
+# V6 - OLD
 #	Check if RT-STPS is installed already
 if [ -d "/root/rt-stps" ]; then
 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
