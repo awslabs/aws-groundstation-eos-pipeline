@@ -1,3 +1,7 @@
+NOTE:  THIS IS AN INTERNAL COPY OF A PUBLICLY AVAILABLE GIHUB repo:
+https://github.com/awslabs/aws-groundstation-eos-pipeline
+
+
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 PDX-License-Identifier: MIT-0
 
@@ -270,17 +274,17 @@ Execute these commands on your local machine command line.
 ```bash
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region $REGION
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region $REGION
+aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region $REGION
+aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region $REGION
 ```
 
 ### Windows
 
 ```bash
-aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
-aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region $REGION
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region $REGION
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\ipopp-ingest.sh s3://%S3_BUCKET%/software/IPOPP/ipopp-ingest.sh --region %REGION% 
+aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --region %REGION% 
+aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.1_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.1_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region %REGION%
 ```
 
 ##  Create the IPOPP Instance CloudFormation Stack
