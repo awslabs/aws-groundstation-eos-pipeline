@@ -1,6 +1,3 @@
-NOTE:  THIS IS AN INTERNAL COPY OF A PUBLICLY AVAILABLE GIHUB repo:
-https://github.com/awslabs/aws-groundstation-eos-pipeline
-
 
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 PDX-License-Identifier: MIT-0
