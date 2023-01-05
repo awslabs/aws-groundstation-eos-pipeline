@@ -1,3 +1,7 @@
+NOTE:  THIS IS AN INTERNAL COPY OF A PUBLICLY AVAILABLE GIHUB repo:
+https://github.com/awslabs/aws-groundstation-eos-pipeline
+
+
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 PDX-License-Identifier: MIT-0
 
@@ -16,8 +20,8 @@ The solution operates as follows:
 1. AWS GroundStation triggers a CloudWatch event during a PREPASS transtion, a few minutes before a satellite contact.
 2. The CloudWatch event, triggers a Lambda function which starts up the Receiver EC2 instance.
 3. The Receiver EC2 instance captures the raw data from the Ground Station service via RT Logic's Data Defender software.
-4. The Data Capture Application running on the Receive instance, strips out and combines the payload data from the incoming VITA 49 data stream.
-5. The Data Capture Application starts up RT-STPS which processes the raw data into Level 0 data
+4. The Data Capture Application running on the Receiver instance, strips out and combines the payload data from the incoming VITA 49 data stream.
+5. The Data Capture Application starts up RT-STPS which processes the raw data into Level 0 data.
 6. The Data Capture Application pushes the data to S3, sends an SNS notification, then shuts down.
 7. The SNS Notification triggers a Lambda function which starts up the Processor EC2 instance.
 8. The Processor EC2 Instance pulls the data from S3, then processes it using IPOPP.
@@ -50,8 +54,8 @@ If in doubt, use admin for testing, but create a Least Privileged Access (LPA) I
 
 Send an email to aws-groundstation@amazon.com with the following details:
 - Satellite NORAD ID: 27424 (AQUA)
-- You AWS Account Id
-- AWS Regions you want use the Ground Station Service
+- Your AWS Account Id
+- AWS Regions you want to use the Ground Station Service
 - AWS Regions you want to downlink the data to, normally the same as above
 
 ##	A VPC with public subnets, plus an SSH key for accessing EC2 instance(s)
@@ -97,7 +101,7 @@ Alternatively, you can download this GitHub repository by clicking Code -> Downl
 
 Follow the steps below to configure AWS GroundStation to process data from the AQUA Satellite and create an EC2 instance to receive the data.
 The EC2 instance receives the data, processes it using NASA's RealTime Satellite Telemetry Processing Software (RT-STPS) and uploads the data to S3.
-Once the data is uploaded and SNS Notification is sent which triggers the IPOPP Processing node which creates the usable data products.
+Once the data is uploaded an SNS Notification is sent which triggers the IPOPP Processing node which creates the usable data products.
 
 ##	Create S3 bucket
 
@@ -131,9 +135,9 @@ aws s3 mb s3://%S3_BUCKET% --region %REGION%
 
 **Optional:** If you already have access to these files on another S3 bucket there is no need to download them again.
 
-Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=325&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
+Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=263&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
 - RT-STPS_7.0.tar.gz
-
+- RT-STPS_7.0_PATCH_1.tar.gz
 
 ##	Upload RT-STPS to the new S3 bucket:
 
@@ -146,12 +150,14 @@ Execute these commands on your local machine command line.
 
 ```bash
 aws s3 cp $WORKING_DIR/RT-STPS_7.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz --region $REGION 
+aws s3 cp $WORKING_DIR/RT-STPS_7.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz --region $REGION  
 ```
 
 ### Windows
 
 ```bash
 aws s3 cp %WORKING_DIR%\RT-STPS_7.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_7.0.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\RT-STPS_7.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz --region %REGION% 
 ```
 
 ## Copy the data capture application to the new bucket
@@ -258,9 +264,8 @@ set S3_BUCKET=your-bucket-name
 ##  Copy the IPOPP files to the new bucket
 The IPOPP scripts (ipopp-ingest.sh, install-ipopp.sh) are found in this repository. 
 
-Manually download IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=290&type=software) to $WORKING_DIR. 
-
-Manually download DRL-IPOPP_4.0_PATCH_1.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR. 
+Manually download DRL-IPOPP_4.1_PATCH_1.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR. 
+Manually download DRL-IPOPP_4.1_PATCH_2.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR.
 
 Execute these commands on your local machine command line.
 
@@ -269,8 +274,8 @@ Execute these commands on your local machine command line.
 ```bash
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
-aws s3 cp $WORKING_DIR/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region $REGION
+aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region $REGION
+aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region $REGION
 ```
 
 ### Windows
@@ -278,8 +283,8 @@ aws s3 cp $WORKING_DIR/DRL-IPOPP_4.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/I
 ```bash
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\ipopp-ingest.sh s3://%S3_BUCKET%/software/IPOPP/ipopp-ingest.sh --region %REGION% 
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --region %REGION% 
-aws s3 cp %WORKING_DIR%\IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IMAPP/IMAPP_3.1.1_SPA_1.4_PATCH_2.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.0_PATCH_1.tar.gz --region %REGION%
+aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.1_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region %REGION% 
+aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.1_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region %REGION%
 ```
 
 ##  Create the IPOPP Instance CloudFormation Stack
@@ -298,9 +303,6 @@ Enter parameters as follows:
 - Stack name: 'any value' e.g. gs-processor-aqua
 - AcceptNasaLicenseAgreement: Accept
 - InstanceType: c5.xlarge is OK for most IPOPP Software Processing Algorithms (SPAs). However, you will need c5.4xlarge to use the Blue Marble MODIS Sharpened Natural/True color SPAs.
-- IpoppPassword: 'Enter a password to use for the ipopp user account and VNC password on the EC2 instance'
-- NotificationEmail: 'Your email where you want to receive all the notifications'
-- ReceiverCloudFormationStackName: 'StackName for the receiver instance'
 - S3Bucket: 'your-bucket-name' (The one you created earlier)
 - SSHCidrBlock: 'your-public-ip'/32. If needed get it from https://whatismyip.com. Ensure you add “/32” to the end of the IP address
 - SSHKeyName: 'your-ssh-key-name'
@@ -358,7 +360,6 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12
     ```
 
 2.	Open the Tiger VNC Client application on your PC and connect to ‘localhost:1’
-    (If you are seeing just a black screen, please refer to Note 2 below.)
 3.	When prompted, enter the ipopp password you provided to the CloudFormation template in the earlier step
 
 
@@ -386,40 +387,40 @@ vncserver
 ```
 
 
-## Download and install DRL-IPOPP_4.0.tar.gz
+## Download and install DRL-IPOPP_4.1.tar.gz
 
-**Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.0.tar.gz If you do not have access to the archive then follow these installation instructions.  
+**Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1.tar.gz If you do not have access to the archive then follow these installation instructions.  
 
-**Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_4.0.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
+**Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_4.1.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
 
 Execute these commands as the centos user on the processor EC2 instance after logging in with SSH or PuTTY. 
 
 1. Open Firefox and navigate to https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software 
 2. Login using your credentials. 
-3. Click the blue box "Click To Download Version: 4.0" and accept the statement.
-4. Download downloader_DRL-IPOPP_4.0.sh 
+3. Click the blue box "Click To Download Version: 4.1" and accept the statement.
+4. Download downloader_DRL-IPOPP_4.1.sh
 5. Open a terminal and navigate to the Downloads directory. 
 
     ```bash
     cd /home/ipopp/Downloads
     ```
 
-6. Move the downloader_DRL-IPOPP_4.0.sh script to /home/ipopp/ 
+6. Move the downloader_DRL-IPOPP_4.1.sh script to /home/ipopp/ 
 
     ```bash
-    mv downloader_DRL-IPOPP_4.0.sh /home/ipopp/downloader_DRL-IPOPP_4.0.sh 
+    mv downloader_DRL-IPOPP_4.1.sh /home/ipopp/downloader_DRL-IPOPP_4.1.sh
     ```
 
 7. Make the download script executable and run it.
 
     ```bash
     cd /home/ipopp/
-    chmod +x downloader_DRL-IPOPP_4.0.sh
-    ./downloader_DRL-IPOPP_4.0.sh
+    chmod +x downloader_DRL-IPOPP_4.1.sh
+    ./downloader_DRL-IPOPP_4.1.sh
     ```
 
-8. Wait for the download to finish. This should take about 1 hour, so now is a good time to get some lunch. 
-9. Once DRL-IPOPP_4.0.tar.gz is downloaded and assembled run the install-ipopp.sh script as root. Set the needed variables. 
+8. Wait for the download to finish. This should take about 1 hour or so. 
+9. Once DRL-IPOPP_4.1.tar.gz is downloaded and assembled run the install-ipopp.sh script as root. Set the needed variables. 
 
     ```bash
     export SatelliteName=AQUA
@@ -430,7 +431,7 @@ Execute these commands as the centos user on the processor EC2 instance after lo
 
 ##  IPOPP SPA Configuration
 
-By default IPOPP creates data products which are Level 1A and Level 1B only.
+By default, IPOPP creates data products which are Level 1A and Level 1B only.
 These data products are great to use for further processing using software such as polar2grid, but if we want IPOPP to create usable Level 2 products we must enable additional IPOPP Software Processing Algorithms (SPAs).
 Unfortunately, SPAs can only be configured using a GUI java application.
 Follow the steps below to connect to the server using a VPC client, then configure the required SPAs.
@@ -443,8 +444,8 @@ Perform the following steps within the VNC session on the IPOPP EC2 instance.
     ~/drl/tools/dashboard.sh &
     ```
 
-2.	In the dashboard, click Mode->Configuration Editor
-3.	Click Actions->Configure Projection, Select Stereographic, then Click Configure Projection
+2.	In the dashboard, click Mode->IPOPP Configuration Editor
+3.	Click Actions->Configure Projection, Select Stereographic, then click Configure Projection
 4.	Enable other SPA modules as desired by simply clicking on them. You may want to enable all of SPAs in your initial experimentation to see the data created by each SPA.
 5.	Once you have finished enabling SPAs, click Actions->Save IPOPP Configuration
 6.	To start the SPA services and see the progress visually, click Mode->IPOPP Process Monitor, click 'Yes' to save, then click Actions->Start SPA Services, click 'Yes' to confirm. This will start-up the required services. Each service when started will check for the input data it requires and process it. The processed data for AQUA can be found here: $HOME/drl/data/pub/gsfcdata/aqua/modis/level2
