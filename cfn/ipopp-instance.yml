@@ -138,11 +138,13 @@ Mappings:
     me-south-1:
       ami: ami-011c71a894b10f35b
     eu-west-1:
-      ami: ami-0b850cf02cc00fdc8
+      ami: ami-0c1f3a8058fde8814
     eu-north-1:
       ami: ami-05788af9005ef9a93
     ap-southeast-2:
       ami: ami-0b2045146eb00b617
+    ap-southeast-1:
+      ami: ami-00d785f1c099d5a0e
 
 Resources:
 
