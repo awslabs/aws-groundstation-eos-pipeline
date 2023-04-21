@@ -14,7 +14,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# This template will create a CentOS Linux server to process NASA DRL data
+# This template will create a Ubuntu 20 Linux server to process NASA DRL data
 # from AQUA, TERRA, SMPP, etc
 
 # This cfn template:
@@ -37,7 +37,7 @@
 # This is OK for testing. However to work in a pipeline, you need to tell the
 #   instance to shut down after completing.
 # Do this by modifying /etc/rc.local as follows:
-# runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA groundstation-nik-99-us-east-2 | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1" && systemctl poweroff -i
+# runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA <S3-bucket-name> | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1" && systemctl poweroff -i
 
 AWSTemplateFormatVersion: "2010-09-09"
 
@@ -57,17 +57,14 @@ Parameters:
     Description: Name of the ssh key used to access ec2 hosts. Set this up ahead of time.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-    Default: "me-south-1"
 
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC to launch instances in.
-    Default: vpc-a3c323ca
 
   SubnetId:
     Description: Subnet to launch instances in
     Type: AWS::EC2::Subnet::Id
-    Default: subnet-f5c6ebbf
 
   S3Bucket:
     Type: String
@@ -98,7 +95,6 @@ Parameters:
     Default: "AQUA"
     AllowedValues:
       - AQUA
-#      - JPSS1
 
   NotificationEmail:
     Default: 'user@amazon.com'
@@ -108,8 +104,9 @@ Parameters:
     ConstraintDescription: "Must be a valid email adress"
 
   ReceiverCloudFormationStackName:
+  #ReceiverSNSTopicArn:
     Type: String
-    Description: The name of the CloudFormation Stack that created the receiver instance.
+    Description: The name of the CloudFormation Stack that created the receiver instance. 
     Default: 'gs-receiver-aqua'
 
   AcceptNasaLicenseAgreement:
@@ -125,26 +122,34 @@ Conditions:
     !Equals ['Accept', !Ref AcceptNasaLicenseAgreement]
 
 Mappings:
-  # The relevant CENTOS7CLEAN amis depending on the region
+  # The relevant Ubuntu 20.04 amis depending on the region
   AmiMap:
     us-east-1:
-      ami: ami-0affd4508a5d2481b
+      ami: ami-0aa2b7722dc1b5612
     us-east-2:
-      ami: ami-01e36b7901e884a10
-    us-west-1:
-      ami: ami-098f55b4287a885ba
+      ami: ami-06c4532923d4ba1ec
     us-west-2:
-      ami: ami-0bc06212a56393ee1
-    me-south-1:
-      ami: ami-011c71a894b10f35b
-    eu-west-1:
-      ami: ami-0c1f3a8058fde8814
-    eu-north-1:
-      ami: ami-05788af9005ef9a93
-    ap-southeast-2:
-      ami: ami-0b2045146eb00b617
+      ami: ami-0db245b76e5c21ca1
+    af-sout-1:
+      ami: ami-043ae129b84099da5
+    ap-northeast-2:
+      ami: ami-0c6e5afdd23291f73
     ap-southeast-1:
-      ami: ami-00d785f1c099d5a0e
+      ami: ami-062550af7b9fa7d05
+    ap-southeast-2:
+      ami: ami-03d0155c1ef44f68a
+    eu-central-1:
+      ami: ami-0d497a49e7d359666
+    eu-west-1:
+      ami: ami-05147510eb2885c80 
+    eu-north-1:
+      ami: ami-0cf13cb849b11b451    
+    me-south-1:
+      ami: ami-0f11b4602adfe829d
+    sa-east-1:
+      ami: ami-002a875adefcee7fc 
+
+
 
 Resources:
 
@@ -410,22 +415,32 @@ Resources:
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
               echo `date +'%F %R:%S'` "INFO: Logging Setup" >&2
 
+              export DEBIAN_FRONTEND=noninteractive
+              export SPACE_SOLUTIONS_BUCKET="space-solutions-${AWS::Region}"
+
+              echo '========================================='
               echo "Installing pre-req software"
-              yum update -y
-              yum install -y epel-release
-              yum install -y python-pip python-devel
-              yum groupinstall -y 'development tools'
-              yum install -y python3-pip
+              echo '========================================='
+              apt-get update -y && apt-get upgrade -y
+              apt-get install -y jq
+              apt-get install -y unzip 
+              apt-get install -y python
+              apt-get install -y python3
+              apt-get install -y python-pip
+              apt-get install -y python3-pip
+              apt-get install -y wget nano libaio1 tcsh bc ed rsync perl default-jdk default-jre libaio-dev
+              python -m pip install --upgrade pip --user
+              python3 -m pip install --upgrade pip --user
+              echo "export PATH=~/.local/bin:$PATH" >> ~/.profile
+              source ~/.profile
               echo "Pre-req software install finished"
 
-              # Install AWS CLI for python 2 and 3
-              pip install --upgrade pip --user
-              pip3 install --upgrade pip --user
-              pip install awscli --upgrade --user
-              pip3 install awscli --upgrade --user
-              # Add /.local/bin to $PATH
-              echo "export PATH=~/.local/bin:$PATH" >> ~/.bash_profile
-              source ~/.bash_profile
+              echo '========================================='
+              echo "Install AWS CLI..."
+              echo '========================================='
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" 
+              unzip awscliv2.zip > /dev/null
+              ./aws/install
               echo "AWS CLI install finished"
 
               echo "Getting IPOPP scripts"
@@ -440,19 +455,15 @@ Resources:
 
               echo "Creating ipopp user"
               adduser ipopp
-              sudo usermod -aG wheel ipopp
+              sudo usermod -aG sudo ipopp
 
-              echo "Updating nproc limit"
-              echo "* soft nproc 65535" >> /etc/security/limits.d/20-nproc.conf
 
-              echo "Install the AWSCLI for the ipopp user"
-              runuser -l ipopp -c "pip3 install awscli --upgrade --user"
-
-              echo "Installing Tiger VNC Server"
-              yum groupinstall -y "Server with GUI"
-              systemctl set-default graphical.target
-              systemctl default -f --no-block
-              yum install -y tigervnc-server
+              echo "Installing Tight VNC Server"
+              apt-get install -y xfce4 xfce4-goodies terminator
+              apt-get install -y tightvncserver
+              # menu bar fix for tightvnc on ubuntu20.04 LTS
+              curl "http://launchpadlibrarian.net/494460182/xfwm4_4.14.5-1_amd64.deb" -o /xfwm4_4.14.5-1_amd64.deb
+              apt-get install /xfwm4_4.14.5-1_amd64.deb
 
               echo "Setting ipopp user password"
               echo "ipopp:${IpoppPassword}" | chpasswd
@@ -460,15 +471,37 @@ Resources:
               echo "Setting ipopp user vnc password"
               mkdir -p /home/ipopp/.vnc
               echo ${IpoppPassword} | vncpasswd -f > /home/ipopp/.vnc/passwd
+
+              # Create /home/ipopp/.vnc/xstartup
+              echo '#!/bin/bash' > /home/ipopp/.vnc/xstartup
+              echo "xrdb /home/ipopp/.Xresources" >> /home/ipopp/.vnc/xstartup
+              echo "startxfce4 &" >> /home/ipopp/.vnc/xstartup
+              chmod +x /home/ipopp/.vnc/xstartup
+
+              # Sort out file permissions
               chown -R ipopp:ipopp /home/ipopp/.vnc
               chmod 0600 /home/ipopp/.vnc/passwd
 
-              echo "Starting vncserver −xstartup bash"
-              runuser -l ipopp -c "vncserver"
+              # Start vnc server
+              aws s3 cp s3://$SPACE_SOLUTIONS_BUCKET/software/gnu-radio/vncserver /etc/init.d/vncserver --region ${AWS::Region}
+              sed -i 's/ubuntu/ipopp/g' /etc/init.d/vncserver
+              sed -i 's/"1024x768"/"1360x768"/g' /etc/init.d/vncserver
+              chmod +x /etc/init.d/vncserver
+              systemctl daemon-reload
+              systemctl enable vncserver
+              systemctl start vncserver
 
-              echo "Adding vncserver to rc.local"
-              echo "runuser -l ipopp -c \"vncserver\"" >> /etc/rc.local
+              echo "Adding logging to rc.local"
+              chmod +x /etc/rc.local
+              echo "exec > >(tee /var/log/rc.local.log) 2>&1" >> /etc/rc.local
 
+              echo "Creating ipopp logfile"
+              touch /opt/aws/groundstation/bin/ipopp-ingest.log
+              chmod 777 /opt/aws/groundstation/bin/ipopp-ingest.log
+
+              echo "Adding IPOPP ingest to rc.local"
+              echo "runuser -l ipopp -c \"/opt/aws/groundstation/bin/ipopp-ingest.sh ${SatelliteName} ${S3Bucket} | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1\"" >> /etc/rc.local
+              
               echo "Sending completion SNS notification"
             
               export MESSAGE="IPOPP setup requires manual intervention. Please log into the processor instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
