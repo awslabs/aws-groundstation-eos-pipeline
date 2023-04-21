@@ -132,7 +132,7 @@ aws s3 mb s3://%S3_BUCKET% --region %REGION%
 
 **Optional:** If you already have access to these files on another S3 bucket there is no need to download them again.
 
-Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=263&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
+Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=325&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
 - RT-STPS_7.0.tar.gz
 - RT-STPS_7.0_PATCH_1.tar.gz
 
@@ -191,9 +191,6 @@ Enter parameters as follows in the CloudFormation console:
 **Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to both SSH on port 22 and the web-based Data Defender software on port 80. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the ports and should not be done.
 
 - Stack name: 'any value' e.g. gs-receiver-aqua
-- AmiComponents: DDX 2.6.2 only
-- CreateReceiverInstance: true
-- InstanceType: c5.4xlarge
 - NotificationEmail: 'your-email-address'
 - S3Bucket: 'your-s3-bucket'
 - SSHCidrBlock: 'your-public-ip'/32
@@ -443,40 +440,9 @@ Perform the following steps within the VNC session on the IPOPP EC2 instance.
 
 Once this configuration process is done it does not need to be done again. IPOPP will now automatically start the additional SPAs each time an ingest is done.
 
-##  Configure the IPOPP Instance to shutdown after processing
-
-Now that IPOPP is configured, we can configure it to shutdown after processing the data.
-We do this by adding a shutdown command after the processing command in the /etc/rc.local file
-
-1. In an SSH or VNC session on the IPOPP server, open terminal.
-2. Switch to root
-
-    ```bash
-    sudo su - 
-    ```
-
-3. Open the /etc/rc.local file
-
-    ```bash
-    nano /etc/rc.local
-    ```
-
-4. Locate the last line (It will have a call to 'ipopp-ingest.sh' in it) and add **' && systemctl poweroff -i'** to the end of the line, after the double quotes and without the single quotes. The line should look like the one below: 
-
-    ```bash
-    runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA <bucket-name> | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1" && systemctl poweroff -i
-    ```
-
-5. You can now exit the VNC and SSH session.
-
-
-# Stop the EC2 instances
+# Activating the Earth Observation pipeline
 
 The EC2 instances are automatically started and stopped as required. To allow this to happen you must now stop all EC2 instances.
-
-# Scheduling a Satellite Contact
-
-At this point you can schedule a contact with AQUA using the AWS console.
 
 ## Scheduling a live AQUA contact
 

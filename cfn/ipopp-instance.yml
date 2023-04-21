@@ -500,7 +500,7 @@ Resources:
               chmod 777 /opt/aws/groundstation/bin/ipopp-ingest.log
 
               echo "Adding IPOPP ingest to rc.local"
-              echo "runuser -l ipopp -c \"/opt/aws/groundstation/bin/ipopp-ingest.sh ${SatelliteName} ${S3Bucket} | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1\"" >> /etc/rc.local
+              echo "runuser -l ipopp -c \"/opt/aws/groundstation/bin/ipopp-ingest.sh ${SatelliteName} ${S3Bucket} | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1\"" >> /etc/rc.local && systemctl poweroff -i
               
               echo "Sending completion SNS notification"
             

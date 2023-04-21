@@ -44,27 +44,6 @@ Description: Ground Station stack for AQUA
 
 Parameters:
 
-  # Ec2InstanceAmi:
-  #   Description: The AMI to use when creating the EC2 instance. Use the default value unless you need a custom AMI.
-  #   Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-  #   Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-
-  AMIComponents:
-    Description: Select the default software that should be installed on the instance
-    Type: String
-    Default: "DDX 2.6.2 Only"
-    AllowedValues:
-      - "DDX 2.6.2 Only"
-      - "DDX 2.6.2 with qRadio 3.6.0"
-
-  CreateReceiverInstance:
-    Description: Toggle for creating the EC2 receiver instance.
-    Type: String
-    Default: True
-    AllowedValues:
-      - True
-      - False
-
   SSHCidrBlock:
     Description: The CIDR Block that the security group will allow ssh access to an instance. The CIDR Block has the form x.x.x.x/x.
     Type: String
@@ -88,16 +67,6 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
     Default: ""
 
-  InstanceType:
-    Description: EC2 Instance Type
-    Type: String
-    Default: "m5.4xlarge"
-    AllowedValues:
-      - m5.4xlarge
-      - m5d.4xlarge
-      - c5.4xlarge
-      - c5d.4xlarge
-
   SatelliteName:
     Type: String
     Description: Used for data receiver task
@@ -118,11 +87,6 @@ Parameters:
     AllowedPattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
     ConstraintDescription: "Must be a valid email adress"
 
-Conditions:
-
-  ShouldCreateInstance:
-    !Equals [true, !Ref CreateReceiverInstance]
-
 Resources:
 
 # ============================================
@@ -130,7 +94,6 @@ Resources:
 # ============================================
 
   AMINameRetrievalLambda:
-    Condition: ShouldCreateInstance
     Type: AWS::CloudFormation::CustomResource
     Properties:
       ServiceToken:
@@ -139,8 +102,7 @@ Resources:
         - { LambdaFunctionName: !Ref GroundStationAmazonMachineImageNameRetrievalLambda }
       Region:
         !Sub '${AWS::Region}'
-      AMIComponents:
-        !Ref AMIComponents
+      AMIComponents: "DDX 2.6.2 Only"
 
   GroundStationAmazonMachineImageNameRetrievalLambdaRole:
     Type: AWS::IAM::Role
@@ -328,7 +290,6 @@ Resources:
   # The EC2 instance assumes this role.
   InstanceRole:
     Type: AWS::IAM::Role
-    Condition: ShouldCreateInstance
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -347,7 +308,6 @@ Resources:
 
   InstanceRoleS3Policy:
     Type: AWS::IAM::ManagedPolicy
-    Condition: ShouldCreateInstance
     Properties:
       PolicyDocument:
         Version: "2012-10-17"
@@ -401,7 +361,6 @@ Resources:
 
   InstanceRoleSNSPolicy:
     Type: AWS::IAM::ManagedPolicy
-    Condition: ShouldCreateInstance
     Properties:
       PolicyDocument:
         Version: "2012-10-17"
@@ -471,13 +430,11 @@ Resources:
 # ============================================
 
   InstanceEIP:
-    Condition: ShouldCreateInstance
     Type: AWS::EC2::EIP
     Properties:
       Domain: 'vpc'
 
   InstanceEIPAsscociation:
-    Condition: ShouldCreateInstance
     Type: AWS::EC2::EIPAssociation
     Properties:
       AllocationId: !GetAtt InstanceEIP.AllocationId
@@ -508,7 +465,6 @@ Resources:
   # The instance profile for your EC2 instance.
   GeneralInstanceProfile:
     Type: AWS::IAM::InstanceProfile
-    Condition: ShouldCreateInstance
     DependsOn: InstanceRole
     Properties:
       Roles:
@@ -517,7 +473,6 @@ Resources:
   # The EC2 instance that will send/receive data to/from your satellite using AWS Ground Station.
   ReceiverInstance:
     Type: AWS::EC2::Instance
-    Condition: ShouldCreateInstance
     DependsOn:
       - InstanceSecurityGroup
       - GeneralInstanceProfile
@@ -525,11 +480,7 @@ Resources:
       DisableApiTermination: false
       IamInstanceProfile: !Ref GeneralInstanceProfile
       ImageId: !GetAtt AMINameRetrievalLambda.Id
-      #ImageId: !Ref Ec2InstanceAmi
-      # ImageId:
-      #   Fn::FindInMap:
-      #     [AmiMap, Ref: "AWS::Region", ami]
-      InstanceType: !Ref InstanceType
+      InstanceType: "m5.4xlarge"
       KeyName: !Ref SSHKeyName
       Monitoring: true
 
@@ -540,7 +491,6 @@ Resources:
           DeviceIndex: 1
           DeleteOnTermination: false
 
-      #Tenancy: dedicated
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
@@ -776,6 +726,7 @@ Resources:
         DataflowEndpointConfig:
           #DataflowEndpointName: "Downlink Demod Decode"
           DataflowEndpointName: !Sub "${AWS::StackName}-Downlink-Decode"
+          DataflowEndpointRegion: !Ref AWS::Region
 
   AquaMissionProfile:
     Type: AWS::GroundStation::MissionProfile
@@ -959,7 +910,6 @@ Outputs:
       Ref: SubnetId
 
   ReceiverAddress:
-    Condition: ShouldCreateInstance
     Value:
       Fn::GetAtt: [ ReceiverInstanceNetworkInterface, PrimaryPrivateIpAddress ]
 

@@ -17,7 +17,7 @@
 #!/bin/bash
 
 S3_BUCKET=$1
-REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//')
+REGION=$2
 
 
 if [ ! -e /home/ipopp/DRL-IPOPP_5.0.tar.gz ]; then
