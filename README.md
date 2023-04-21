@@ -261,9 +261,6 @@ set S3_BUCKET=your-bucket-name
 ##  Copy the IPOPP files to the new bucket
 The IPOPP scripts (ipopp-ingest.sh, install-ipopp.sh) are found in this repository. 
 
-Manually download DRL-IPOPP_4.1_PATCH_1.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR. 
-Manually download DRL-IPOPP_4.1_PATCH_2.tar.gz from [here](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) to $WORKING_DIR.
-
 Execute these commands on your local machine command line.
 
 ### Linux / Mac
@@ -271,8 +268,6 @@ Execute these commands on your local machine command line.
 ```bash
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_1.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region $REGION
-aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_2.tar.gz s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region $REGION
 ```
 
 ### Windows
@@ -280,13 +275,9 @@ aws s3 cp $WORKING_DIR/DRL-IPOPP_4.1_PATCH_2.tar.gz s3://${S3_BUCKET}/software/I
 ```bash
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\ipopp-ingest.sh s3://%S3_BUCKET%/software/IPOPP/ipopp-ingest.sh --region %REGION% 
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --region %REGION% 
-aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.1_PATCH_1.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.1_PATCH_1.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\DRL-IPOPP_4.1_PATCH_2.tar.gz s3://%S3_BUCKET%/software/IPOPP/DRL-IPOPP_4.1_PATCH_2.tar.gz --region %REGION%
 ```
 
 ##  Create the IPOPP Instance CloudFormation Stack
-
-**Note:** before continuing, subscribe to the *CentOS 7 (x86_64) - with Updates HVM* product in the Marketplace by clicking [here](https://aws.amazon.com/marketplace/server/configuration?productId=b7ee8a69-ee97-4a49-9e68-afaee216db2e&ref_=psb_cfg_continue) You just have to click the Accept Terms orange box. 
 
 Create a CFN stack using the template: ipopp-instance.yml. Follow the same procedure as for the aqua-rt-stps.yml file. Do not edit the ipopp-instance.yml file manually!
 
@@ -319,7 +310,7 @@ The initial part of the EC2 instance set up is automatic. After it has finished 
 
 SSH Connection:
 ```bash
-ssh -i <path-to-ssh-key-file> centos@<instance-public-ip>
+ssh -i <path-to-ssh-key-file> ubuntu@<instance-public-ip>
 ```
 
 Check the user-data logfile:
@@ -331,7 +322,7 @@ tail -F /var/log/user-data.log
 
 You now have the following created in your AWS Account:
 
-- An EC2 Instance running CentOS7
+- An EC2 Instance running Ubuntu 20
 - An SNS topic to notify processing completion
 - A Lambda function to auto-start the IPOPP instance, triggered by the receiver SNS Topic
 
@@ -353,7 +344,7 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12
 1.	Run the command below to connect to the EC2 instance from your local machine using SSH and tunnel the VNC traffic over the SSH session.
 
     ```bash
-    ssh -L 5901:localhost:5901 -i <path to pem file> centos@<public ip address of EC2 instance>
+    ssh -L 5901:localhost:5901 -i <path to pem file> ubuntu@<public ip address of EC2 instance>
     ```
 
 2.	Open the Tiger VNC Client application on your PC and connect to ‘localhost:1’
@@ -364,7 +355,7 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12
 
 1.	Download the open source ssh client Putty from [here](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 2.	Open Putty and enter the public IP of the EC2 instance in the Session->Host Name (or IP Address) field.
-3.	Enter 'centos' in Connection->Data-> Auto-login username
+3.	Enter 'ubuntu' in Connection->Data-> Auto-login username
 4.	In Connection->SSH->Auth, browse to the correct PPK key file (private SSH key) for the EC2 instance
 5.	In Connection->SSH->Tunnels, enter 5901 in Source port, enter localhost:5901 in Destination, click Add
 6.	Click Session, enter a friendly name in Save Sessions, then click Save
@@ -384,45 +375,48 @@ vncserver
 ```
 
 
-## Download and install DRL-IPOPP_4.1.tar.gz
+## Download and install DRL-IPOPP_5.0.tar.gz
 
-**Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_4.1.tar.gz If you do not have access to the archive then follow these installation instructions.  
+**Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_5.0.tar.gz If you do not have access to the archive then follow these installation instructions.  
 
-**Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_4.1.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
+**Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_5.0.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
 
-Execute these commands as the centos user on the processor EC2 instance after logging in with SSH or PuTTY. 
+Execute these commands as the ipopp user on the processor EC2 instance after logging in with SSH or PuTTY. 
 
-1. Open Firefox and navigate to https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software 
-2. Login using your credentials. 
-3. Click the blue box "Click To Download Version: 4.1" and accept the statement.
-4. Download downloader_DRL-IPOPP_4.1.sh
+1. Open Firefox and navigate to https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software
+2. Login using your NASA DRL credentials. 
+3. Click the blue box "Click To Download Version: 5.0" and accept the statement.
+4. Download downloader_DRL-IPOPP_5.0.sh
 5. Open a terminal and navigate to the Downloads directory. 
 
     ```bash
     cd /home/ipopp/Downloads
     ```
 
-6. Move the downloader_DRL-IPOPP_4.1.sh script to /home/ipopp/ 
+6. Move the downloader_DRL-IPOPP_5.0.sh script to /home/ipopp/ 
 
     ```bash
-    mv downloader_DRL-IPOPP_4.1.sh /home/ipopp/downloader_DRL-IPOPP_4.1.sh
+    mv downloader_DRL-IPOPP_5.0.sh /home/ipopp/downloader_DRL-IPOPP_5.0.sh
     ```
 
 7. Make the download script executable and run it.
 
     ```bash
     cd /home/ipopp/
-    chmod +x downloader_DRL-IPOPP_4.1.sh
-    ./downloader_DRL-IPOPP_4.1.sh
+    chmod +x downloader_DRL-IPOPP_5.0.sh
+    ./downloader_DRL-IPOPP_5.0.sh
     ```
 
 8. Wait for the download to finish. This should take about 1 hour or so. 
-9. Once DRL-IPOPP_4.1.tar.gz is downloaded and assembled run the install-ipopp.sh script as root. Set the needed variables. 
+9. Once DRL-IPOPP_5.0.tar.gz is downloaded and assembled run the install-ipopp.sh script as the ipopp user. 
 
     ```bash
-    export SatelliteName=AQUA
-    export S3Bucket=your-bucket-name 
-    sudo /opt/aws/groundstation/bin/install-ipopp.sh ${SatelliteName} ${S3Bucket} 
+    /opt/aws/groundstation/bin/install-ipopp.sh 
+    ```
+10. Restart the instance to make sure the installation completed successfully. 
+
+    ```bash
+    sudo reboot 
     ```
 
 
@@ -443,7 +437,7 @@ Perform the following steps within the VNC session on the IPOPP EC2 instance.
 
 2.	In the dashboard, click Mode->IPOPP Configuration Editor
 3.	Click Actions->Configure Projection, Select Stereographic, then click Configure Projection
-4.	Enable other SPA modules as desired by simply clicking on them. You may want to enable all of SPAs in your initial experimentation to see the data created by each SPA.
+4.	On the EOS tab enable other SPA modules as desired by simply clicking on them. You may want to enable all of SPAs in your initial experimentation to see the data created by each SPA.
 5.	Once you have finished enabling SPAs, click Actions->Save IPOPP Configuration
 6.	To start the SPA services and see the progress visually, click Mode->IPOPP Process Monitor, click 'Yes' to save, then click Actions->Start SPA Services, click 'Yes' to confirm. This will start-up the required services. Each service when started will check for the input data it requires and process it. The processed data for AQUA can be found here: $HOME/drl/data/pub/gsfcdata/aqua/modis/level2
 
@@ -484,11 +478,27 @@ The EC2 instances are automatically started and stopped as required. To allow th
 
 At this point you can schedule a contact with AQUA using the AWS console.
 
-##  Scheduling a live AQUA contact
+## Scheduling a live AQUA contact
 
 Open up the GroundStation console and schedule a contact as required. Ensure you select the correct mission profile and satellite.
 The entire process will be triggered by the GroundStation PREPASS CloudWatch event as described in the Solution overview section.
 
+## Manually triggering processing 
+
+Once the configuration process is completed, it doesn’t need to be repeated. IPOPP automatically starts the additional SPAs with each ingest. If you capture data from additional satellite passes, you can trigger the retrieval of Level 0 data from S3 and the IPOPP processing by either rebooting the EC2 instance or running the following command on the instance:
+
+```bash
+su -l ipopp
+/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA <S3_BUCKET> | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1
+```
+
+Once the IPOPP processing completes, Level 1 and Level 2 data products are uploaded to S3.
+
+After executing the ipopp-ingest script, the progress can be tracked with the following command:
+
+```bash
+tail -F /opt/aws/groundstation/bin/ipopp-ingest.log
+```
 
 # Viewing the files created
 
@@ -501,6 +511,16 @@ You can find the created files in the S3 bucket as follows:
 - Logfiles: s3://${S3_BUCKET}/data/AQUA/logs
 - Raw data for re-processing: s3://${S3_BUCKET}/data/AQUA/raw
 
+Level 2 data products produced by IPOPP are HDF and TIFF files. HDF (Hierarchical Data Files) are data-rich files, which can be browsed using software such as HDFView. However, the most common use of HDF files is to process them programmatically as they contain the actual data rather than the visual representations you find in the TIFF files. If you plan to perform machine learning on the data, you’ll likely use HDF files. If you are looking for visual representations use the TIFF images, or process the Level 2 data further into Level 3 files. For example, KMZ files that can be imported into Google Earth.
+
+![True color image](cropped-true-color.jpg)
+Cropped True Colour Corrected Reflectance (CREFL) image showing the United Arab Emirates and Oman, produced using IPOPP’s CREFL SPA. If you look carefully, you might see the Palm Jumeirah in the centre-left of the image, off the coast of Dubai.
+
+![Polar2grid](polar2grid.png)
+Level 3 KMZ package created using the polar2grid software and imported into Google Earth. 
+
+The data for both images was captured when the AQUA satellite passed over the AWS Ground Station in Bahrain. These images are a snapshot of the actual data available from the AQUA satellite. Other data includes sea and land surface temperatures, aerosol levels in the atmosphere, chlorophyll concentrations in the sea (which are indicators of marine life), and more.
+
 # Known Errors
 ---
 
@@ -509,9 +529,9 @@ You can find the created files in the S3 bucket as follows:
 2. Occasionally the vncserver process does not start correctly, or sometime provides blank screen when you connect. To workaround this issue just kill and restart the vncserver process:
 
     ```bash
-    su - ipopp
-    vncserver -kill <display> e.g. ‘:1’
-    vncserver
+    su -l ipopp
+    sudo systemctl stop vncserver.service
+    sudo systemctl start vncserver.service
     ```
     
 3. This is more of an FYI than an error. IPOPP will limit the products it produces if it is dark during the satellite contact. So if you don't see the product you need this may be the reason. For deeper troubleshooting you will need to get low-down and dirty in IPOPP and SPA error tracking - this is a bit messy and probably warrants it's own separate document!

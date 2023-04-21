@@ -26,7 +26,7 @@ TIMESTR=$(date '+%Y%m%d-%H%M')
 # Determines if a thumbnail should be created
 # If created it is shared in the SNS notification as a public url or presigned url
 # Valid options: 'disabled', 'public', 'presign'
-THUMBNAIL_OPTION="public"
+THUMBNAIL_OPTION="presign"
 
 # ========================================
 # Functions
