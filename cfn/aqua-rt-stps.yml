@@ -77,7 +77,7 @@ Parameters:
   S3Bucket:
     Type: String
     Description: Will store software and data received from Satellites.
-    Default: "change-me"
+    Default: "eo-pipeline-bucket"
     AllowedPattern: "^[a-z0-9-]+$"
 
   NotificationEmail:
@@ -595,7 +595,6 @@ Resources:
     Properties:
       EndpointDetails:
         - Endpoint:
-            #Name: "Downlink Demod Decode"
             Name: !Sub "${AWS::StackName}-Downlink-Decode"
             Address:
               Name: !GetAtt ReceiverInstanceNetworkInterface.PrimaryPrivateIpAddress
@@ -622,7 +621,6 @@ Resources:
   AquaDownlinkDemodDecodeAntennaConfig:
     Type: AWS::GroundStation::Config
     Properties:
-      #Name: "Aqua 27424 Downlink Demod Decode Antenna Config"
       Name: !Sub "${AWS::StackName}-Aqua-27424-Downlink-Demod-Antenna-Config"
       ConfigData:
         AntennaDownlinkDemodDecodeConfig:
@@ -724,14 +722,12 @@ Resources:
       Name: "Aqua Downlink Demod Decode Endpoint Config"
       ConfigData:
         DataflowEndpointConfig:
-          #DataflowEndpointName: "Downlink Demod Decode"
           DataflowEndpointName: !Sub "${AWS::StackName}-Downlink-Decode"
           DataflowEndpointRegion: !Ref AWS::Region
 
   AquaMissionProfile:
     Type: AWS::GroundStation::MissionProfile
     Properties:
-      #Name: "Aqua 27424"
       Name: !Sub "${AWS::StackName}-Aqua-27424"
       ContactPrePassDurationSeconds: 120
       ContactPostPassDurationSeconds: 60
@@ -897,22 +893,6 @@ Resources:
 # ============================================
 
 Outputs:
-  DataflowEndpointSecurityGroup:
-    Value:
-      Ref: DataflowEndpointSecurityGroup
-
-  DataflowEndpointRoleArn:
-    Value:
-      Fn::GetAtt: [DataDeliveryServiceRole, Arn]
-
-  DataflowEndpointSubnetId:
-    Value:
-      Ref: SubnetId
-
-  ReceiverAddress:
-    Value:
-      Fn::GetAtt: [ ReceiverInstanceNetworkInterface, PrimaryPrivateIpAddress ]
-
   SnsTopicArn:
     Value:
       Ref: SNSTopic

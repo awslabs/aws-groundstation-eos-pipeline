@@ -33,12 +33,6 @@
 # - run 'drl/tools/dashboard.sh &' to configure required IPOPP SPAs'
 # - Stop the EC2 instance
 
-# By default the EC2 instance will keep running after ipopp-ingest.sh completes.
-# This is OK for testing. However to work in a pipeline, you need to tell the
-#   instance to shut down after completing.
-# Do this by modifying /etc/rc.local as follows:
-# runuser -l ipopp -c "/opt/aws/groundstation/bin/ipopp-ingest.sh AQUA <S3-bucket-name> | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1" && systemctl poweroff -i
-
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description: >
@@ -49,7 +43,7 @@ Parameters:
   SSHCidrBlock:
     Description: The CIDR Block that the security group will allow ssh access to an instance. The CIDR Block has the form x.x.x.x/x.
     Type: String
-    Default: "10.0.0.0/16"
+    Default: "10.0.0.0/32"
     AllowedPattern : '((\d{1,3})\.){3}\d{1,3}/\d{1,2}'
     ConstraintDescription : must be a valid CIDR range of the form x.x.x.x/x, for example "10.0.0.0/16".
 
@@ -69,7 +63,7 @@ Parameters:
   S3Bucket:
     Type: String
     Description: Will store software and data received from Satellites.
-    Default: "aws-gs-blog-me-south-1"
+    Default: "eo-pipeline-bucket"
 
   InstanceType:
     Description: EC2 Instance Type
@@ -97,7 +91,7 @@ Parameters:
       - AQUA
 
   NotificationEmail:
-    Default: 'user@amazon.com'
+    Default: 'someone@somewhere.com'
     Description: "Email address to receive contact updates"
     Type: String
     AllowedPattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
@@ -491,22 +485,36 @@ Resources:
               systemctl enable vncserver
               systemctl start vncserver
 
-              echo "Adding logging to rc.local"
-              chmod +x /etc/rc.local
-              echo "exec > >(tee /var/log/rc.local.log) 2>&1" >> /etc/rc.local
-
               echo "Creating ipopp logfile"
               touch /opt/aws/groundstation/bin/ipopp-ingest.log
               chmod 777 /opt/aws/groundstation/bin/ipopp-ingest.log
 
-              echo "Adding IPOPP ingest to rc.local"
-              echo "runuser -l ipopp -c \"/opt/aws/groundstation/bin/ipopp-ingest.sh ${SatelliteName} ${S3Bucket} | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1\"" >> /etc/rc.local && systemctl poweroff -i
-              
+              echo "Adding IPOPP ingest to /usr/local/bin/start-ipopp.sh"
+              echo "#!/bin/bash" >> /usr/local/bin/start-ipopp.sh
+              echo "runuser -l ipopp -c \"/opt/aws/groundstation/bin/ipopp-ingest.sh ${SatelliteName} ${S3Bucket} | tee /opt/aws/groundstation/bin/ipopp-ingest.log 2>&1 && systemctl poweroff -i\"" >> /usr/local/bin/start-ipopp.sh 
+              chmod +x /usr/local/bin/start-ipopp.sh
+
+              echo '========================================='
+              echo "Create systemd service to start IPOPP at boot"
+              echo '========================================='
+              echo "[Unit]" > /etc/systemd/system/start-ipopp.service && \
+              echo "Description=Start IPOPP injest service" >> /etc/systemd/system/start-ipopp && \
+              echo "Wants=network-online.target" >> /etc/systemd/system/start-ipopp && \
+              echo "After=network.target network-online.target" >> /etc/systemd/system/start-ipopp.service && \
+              echo "[Service]" >> /etc/systemd/system/start-ipopp.service && \
+              echo "Type=simple" >> /etc/systemd/system/start-ipopp.service && \
+              echo "StandardOutput=journal" >> /etc/systemd/system/start-ipopp.service && \
+              echo "ExecStart=/usr/local/bin/start-ipopp.sh" >> /etc/systemd/system/start-ipopp.service && \
+              echo "[Install]" >> /etc/systemd/system/start-ipopp.service && \
+              echo "WantedBy=multi-user.target" >> /etc/systemd/system/start-ipopp.service && \
+              systemctl enable start-ipopp && \
+              systemctl daemon-reload
+
               echo "Sending completion SNS notification"
             
-              export MESSAGE="IPOPP setup requires manual intervention. Please log into the processor instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
+              export MESSAGE="IPOPP setup requires manual intervention. Please log into the processor instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
               aws sns publish --topic-arn ${SNSTopicArn} --message "$MESSAGE" --region ${AWS::Region}
 
-              echo "IPOPP setup requires manual intervention. Please log into this instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=304&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
+              echo "IPOPP setup requires manual intervention. Please log into this instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
 
             - SNSTopicArn: !Ref SNSTopic
