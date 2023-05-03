@@ -124,7 +124,7 @@ Mappings:
       ami: ami-06c4532923d4ba1ec
     us-west-2:
       ami: ami-0db245b76e5c21ca1
-    af-sout-1:
+    af-south-1:
       ami: ami-043ae129b84099da5
     ap-northeast-2:
       ami: ami-0c6e5afdd23291f73
