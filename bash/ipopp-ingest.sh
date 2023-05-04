@@ -311,7 +311,7 @@ fi
 if [ -f /opt/aws/groundstation/bin/getSNSTopic.sh ] ; then
 
 # The following command assumes there is only one mounted volume
-DISK_USED_PERCENT=$(df -h | grep "^/dev/" | awk '{print $5}')
+DISK_USED_PERCENT=$(df -h | grep "^/dev/root" | awk '{print $5}')
 
 # Get number of IPOPP Errors
 /home/ipopp/drl/nsls/bin/print-logs.sh -eventlevel e > /tmp/ipopp.errors

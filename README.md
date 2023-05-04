@@ -21,7 +21,7 @@ The solution operates as follows:
 5. The Data Capture Application starts up RT-STPS which processes the raw data into Level 0 data.
 6. The Data Capture Application pushes the data to S3, sends an SNS notification, then shuts down.
 7. The SNS Notification triggers a Lambda function which starts up the Processor EC2 instance.
-8. The Processor EC2 Instance pulls the data from S3, then processes it using IPOPP.
+8. The Processor EC2 Instance pulls the data from S3, then processes it using IPOPP. Takes about 60 minutes.
 9. The Processor EC2 Instance pushes the Level 1A, Level 1B and Level 2 data it produces to S3.
 10. The Processor EC2 Instance sends an SNS notification, then shuts down.
 
@@ -62,7 +62,7 @@ You can use the default VPC provided in the region. Follow [these instructions](
 
 ##	Register on NASA DRL website
 
-NASA DRL requires everyone to register who uses their RT-STPS and IPOPP software. Browse to [the NASA DRL website](https://directreadout.sci.gsfc.nasa.gov/loginDRL.cfm?cid=263&type=software) and register using your company email address. You will need to confirm the email address.
+NASA DRL requires everyone to register who uses their RT-STPS and IPOPP software. Browse to [the NASA DRL website](https://directreadout.sci.gsfc.nasa.gov/?id=software) and register using your company email address. You will need to confirm the email address.
 
 ##  Create working directory
 
@@ -366,9 +366,9 @@ Please download and install PuTTygen [here](https://www.puttygen.com/), and conv
 **Note2:** If the Tiger VNC client cannot connect, or you see only a blank screen you may need to restart the vncserver process on the instance. To do this run the commands below in the SSH session to start the vnc server as the ipopp user:
 
 ```bash
-su - ipopp
-vncserver -kill <display> e.g. ‘:1’
-vncserver
+su -l ipopp
+sudo systemctl stop vncserver.service
+sudo systemctl start vncserver.service
 ```
 
 
@@ -380,7 +380,7 @@ vncserver
 
 Execute these commands as the ipopp user on the processor EC2 instance after logging in with SSH or PuTTY. 
 
-1. Open Firefox and navigate to https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software
+1. Open Firefox and navigate to the IPOPP v5.0 download page -> https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software
 2. Login using your NASA DRL credentials. 
 3. Click the blue box "Click To Download Version: 5.0" and accept the statement.
 4. Download downloader_DRL-IPOPP_5.0.sh
