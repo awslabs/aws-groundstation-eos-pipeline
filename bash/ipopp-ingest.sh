@@ -26,7 +26,7 @@ TIMESTR=$(date '+%Y%m%d-%H%M')
 # Determines if a thumbnail should be created
 # If created it is shared in the SNS notification as a public url or presigned url
 # Valid options: 'disabled', 'public', 'presign'
-THUMBNAIL_OPTION="presign"
+THUMBNAIL_OPTION="disabled"
 
 # ========================================
 # Functions
@@ -177,8 +177,8 @@ echo "Ingesting files into IPOPP"
 IPOPP_INGEST_END=$(date '+%Y%m%d-%H:%M:%S')
 
 # Sleep to allow IPOPP to process some files
-echo "Sleeping for 2 mins to wait for IPOPP to create files"
-sleep 120
+echo "Sleeping for 60 mins to wait for IPOPP to create files"
+sleep 3600
 
 # The IPOPP ingest tasks copies file from and to the locations below
 # Therefore we can remove all files in the S3 bucket that exist in the 'to' dir
