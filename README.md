@@ -6,7 +6,7 @@ PDX-License-Identifier: MIT-0
 
 Following this guide results in the implementation of an automated solution that downloads and processes data received from a satellite via the AWS GroundStation service.
 
-This is the advanced version of the [Earth observation using AWS Ground Station blog post](https://aws.amazon.com/blogs/publicsector/earth-observation-using-aws-ground-station/). You may want to go through that first before continuing with this guide. 
+This is the technical guide for the [Earth observation using AWS Ground Station blog post](https://aws.amazon.com/blogs/publicsector/earth-observation-using-aws-ground-station/).
 
 # Solution Overview
 
@@ -59,10 +59,6 @@ Send an email to aws-groundstation@amazon.com with the following details:
 
 Make sure at minimum you have one SSH key and one VPC with an attached IGW and one public subnet. 
 You can use the default VPC provided in the region. Follow [these instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair) to create an EC2 SSH key in the region that you will be deploying your EC2 resources. 
-
-##	Register on NASA DRL website
-
-NASA DRL requires everyone to register who uses their RT-STPS and IPOPP software. Browse to [the NASA DRL website](https://directreadout.sci.gsfc.nasa.gov/?id=software) and register using your company email address. You will need to confirm the email address.
 
 ##  Create working directory
 
@@ -128,35 +124,6 @@ set S3_BUCKET=your-bucket-name
 aws s3 mb s3://%S3_BUCKET% --region %REGION%
 ```
 
-##	Download RT-STPS from NASA DRL website
-
-**Optional:** If you already have access to these files on another S3 bucket there is no need to download them again.
-
-Download the following RT-STPS files from [NASA DRL](https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=325&type=software) to $WORKING_DIR: (Or copy them from another friendly bucket - see below)
-- RT-STPS_7.0.tar.gz
-- RT-STPS_7.0_PATCH_1.tar.gz
-
-##	Upload RT-STPS to the new S3 bucket:
-
-If you already have the files in another S3 bucket then replace '$WORKING_DIR' with 's3://YOUR-S3-BUCKET/software/RT-STPS/'. 
-If your S3 bucket is in a different region you will need to add a --source-region tag at the end of the command. 
-
-Execute these commands on your local machine command line. 
-
-### Linux / Mac
-
-```bash
-aws s3 cp $WORKING_DIR/RT-STPS_7.0.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz --region $REGION 
-aws s3 cp $WORKING_DIR/RT-STPS_7.0_PATCH_1.tar.gz s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz --region $REGION  
-```
-
-### Windows
-
-```bash
-aws s3 cp %WORKING_DIR%\RT-STPS_7.0.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_7.0.tar.gz --region %REGION% 
-aws s3 cp %WORKING_DIR%\RT-STPS_7.0_PATCH_1.tar.gz s3://%S3_BUCKET%/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz --region %REGION% 
-```
-
 ## Copy the data capture application to the new bucket
 
 The data capture application files (receivedata.py, awsgs.py, start-data-capture.sh) are all found in this repository. 
@@ -219,7 +186,7 @@ After logging in to the EC2 instance you can run this command in the terminal se
 tail -F /var/log/user-data.log
 ```
 
-**Note1:** In the latest version of this solution, the Receiver instance automatically shuts down once configuration is completed.
+**Note1:** The Receiver instance automatically shuts down once configuration is completed.
 
 **Note2:** For this solution to work correctly, the EC2 instance must either be shutdown a few minutes before the contact, or you must manually start the data capture application. The easy option: Shutdown/Stop the EC2 instance :).
 
@@ -286,7 +253,6 @@ Enter parameters as follows:
 **Important Note** The IP address or range you enter into the SSHCidrBlock parameter will have access to SSH on port 22. Adding large address ranges such as 0.0.0.0/0 will allow any IP address to access the port and should not be done.
 
 - Stack name: 'any value' e.g. gs-processor-aqua
-- AcceptNasaLicenseAgreement: Accept
 - InstanceType: c5.xlarge is OK for most IPOPP Software Processing Algorithms (SPAs). However, you will need c5.4xlarge to use the Blue Marble MODIS Sharpened Natural/True color SPAs.
 - S3Bucket: 'your-bucket-name' (The one you created earlier)
 - SSHCidrBlock: 'your-public-ip'/32. If needed get it from https://whatismyip.com. Ensure you add “/32” to the end of the IP address
@@ -303,7 +269,7 @@ To receive email messages you must subscribe to the topic by clicking the link s
 
 ##  Watch the progress  
 
-The initial part of the EC2 instance set up is automatic. After it has finished you will be prompted to manually complete the set up by following the steps in the next section Processor Instance Configuration - IPOPP. You can follow the progress of the automatic part over SSH by running the following commands. This takes about 10 minutes to complete. 
+The the EC2 instance set up is automatic. It includes the installation of the IPOPP software for image analysis. You can follow the progress of the automatic part over SSH by running the following commands. This takes about 1 hour to complete. 
 
 SSH Connection:
 ```bash
@@ -319,14 +285,14 @@ tail -F /var/log/user-data.log
 
 You now have the following created in your AWS Account:
 
-- An EC2 Instance running Ubuntu 20
+- An EC2 Instance running Ubuntu 20 and the IPOPP software
 - An SNS topic to notify processing completion
 - A Lambda function to auto-start the IPOPP instance, triggered by the receiver SNS Topic
 
 #	Processor Instance Configuration - IPOPP
 ---
 
-These last steps in the configuration of the IPOPP processor instance must be completed manually due to constraints in the distribution and operation of the NASA DRL IPOPP software.  
+These last steps in the configuration of the IPOPP processor instance must be completed manually.   
 
 
 ## Prerequisites
@@ -370,52 +336,6 @@ su -l ipopp
 sudo systemctl stop vncserver.service
 sudo systemctl start vncserver.service
 ```
-
-
-## Download and install DRL-IPOPP_5.0.tar.gz
-
-**Optional** If you already have this archive saved locally or in an S3 bucket then upload it to ${S3_BUCKET}/software/IPOPP/DRL-IPOPP_5.0.tar.gz If you do not have access to the archive then follow these installation instructions.  
-
-**Note:** NASA DRL requires you to use a system with the same IP address to download and run the DRL-IPOPP_5.0.tar.gz download script. If you restart your EC2 instance before completing the download and it acquires a new Public IP address then it will be necessary to download and run a fresh script. The script must also be run to completion within 24 hours after it was downloaded, or it will be necessary to download and run a fresh script.
-
-Execute these commands as the ipopp user on the processor EC2 instance after logging in with SSH or PuTTY. 
-
-1. Open Firefox and navigate to the IPOPP v5.0 download page -> https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software
-2. Login using your NASA DRL credentials. 
-3. Click the blue box "Click To Download Version: 5.0" and accept the statement.
-4. Download downloader_DRL-IPOPP_5.0.sh
-5. Open a terminal and navigate to the Downloads directory. 
-
-    ```bash
-    cd /home/ipopp/Downloads
-    ```
-
-6. Move the downloader_DRL-IPOPP_5.0.sh script to /home/ipopp/ 
-
-    ```bash
-    mv downloader_DRL-IPOPP_5.0.sh /home/ipopp/downloader_DRL-IPOPP_5.0.sh
-    ```
-
-7. Make the download script executable and run it.
-
-    ```bash
-    cd /home/ipopp/
-    chmod +x downloader_DRL-IPOPP_5.0.sh
-    ./downloader_DRL-IPOPP_5.0.sh
-    ```
-
-8. Wait for the download to finish. This should take about 1 hour or so. 
-9. Once DRL-IPOPP_5.0.tar.gz is downloaded and assembled run the install-ipopp.sh script as the ipopp user. 
-
-    ```bash
-    /opt/aws/groundstation/bin/install-ipopp.sh 
-    ```
-10. Restart the instance to make sure the installation completed successfully. 
-
-    ```bash
-    sudo reboot 
-    ```
-
 
 ##  IPOPP SPA Configuration
 

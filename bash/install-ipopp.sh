@@ -22,12 +22,8 @@ REGION=$2
 
 if [ ! -e /home/ipopp/DRL-IPOPP_5.0.tar.gz ]; then
 
-  aws s3 ls s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_5.0.tar --region $REGION | grep DRL-IPOPP_5.0.tar.gz
-
-  if [ "$?" = "0" ] ; then
-    echo "Downloading DRL-IPOPP_5.0.tar.gz from S3 Bucket: ${S3_BUCKET}"
-    aws s3 cp s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_5.0.tar.gz /home/ipopp/DRL-IPOPP_5.0.tar.gz --region $REGION
-  fi
+  echo "Downloading DRL-IPOPP_5.0.tar.gz from S3 Bucket: ${S3_BUCKET}"
+  aws s3 cp s3://${S3_BUCKET}/software/IPOPP/DRL-IPOPP_5.0.tar.gz /home/ipopp/DRL-IPOPP_5.0.tar.gz --region $REGION
 
 else
   echo "DRL-IPOPP_5.0.tar.gz already exists. Skipping download"
@@ -54,13 +50,12 @@ echo ""
 echo "======================================================================"
 echo ""
 echo " Initial configuration complete."
-echo " This instance will now auto-start ipopp-ingest.sh each time it is started"
+echo " You must now start the instance and configure the IPOPP SPAs manually."
 echo ""
 echo " IPOPP Configuration:"
 echo " By default IPOPP will only create level 1A and level 1B data products"
 echo " To configure IPOPP to create level 2 data products,"
-echo "   the relevant level 2 SPAs must be enabled in the IPOPP dashboard"
+echo " the relevant level 2 SPAs must be enabled in the IPOPP dashboard"
 echo ""
-echo " Restart the instance to make sure the instalation completed succesfully." 
 echo "======================================================================"
 

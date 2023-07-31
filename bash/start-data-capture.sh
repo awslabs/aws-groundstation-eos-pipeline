@@ -105,8 +105,8 @@ else
 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
 	echo "$NOW	Getting RT-STPS software from S3 bucket: ${S3_BUCKET}"
 	cd ~
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0.tar.gz . --region $REGION && \
-	aws s3 cp s3://${S3_BUCKET}/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz . --region $REGION || handleError "Error code ${?}. Failed to get RT-STPS from s3://${S3_BUCKET}/software/RT-STPS/" "FATAL"
+	aws s3 cp s3://space-solutions-eu-west-1/software/RT-STPS/RT-STPS_7.0.tar.gz . --region eu-west-1 && \
+	aws s3 cp s3://space-solutions-eu-west-1/software/RT-STPS/RT-STPS_7.0_PATCH_1.tar.gz . --region eu-west-1 || handleError "Error code ${?}. Failed to get RT-STPS from s3://space-solutions-eu-west-1/software/RT-STPS/" "FATAL"
 
 	export NOW=$(date '+%Y%m%d-%H:%M:%S')
 	echo "$NOW	Installing RT-STPS..."

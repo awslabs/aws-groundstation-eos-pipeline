@@ -103,18 +103,6 @@ Parameters:
     Description: The name of the CloudFormation Stack that created the receiver instance. 
     Default: 'gs-receiver-aqua'
 
-  AcceptNasaLicenseAgreement:
-    Type: String
-    Default: Reject
-    Description: "The International Planetary Observation Processing Package (IPOPP) is licensed under the NASA Open Source Software Agreement, available at https://ti.arc.nasa.gov/opensource/nosa/. Choose Accept to accept the terms of license."
-    AllowedValues:
-      - Accept
-      - Reject
-
-Conditions:
-  NasaLicenceAccepted:
-    !Equals ['Accept', !Ref AcceptNasaLicenseAgreement]
-
 Mappings:
   # The relevant Ubuntu 20.04 amis depending on the region
   AmiMap:
@@ -149,7 +137,6 @@ Resources:
 
   # Policy to give the Lambda function permission to describe, start and stop EC2 instances
   GsIpoppLambdaRolePolicy:
-    Condition: NasaLicenceAccepted
     Type: AWS::IAM::ManagedPolicy
     Properties:
       PolicyDocument:
@@ -315,6 +302,28 @@ Resources:
               -
                 - "arn:aws:s3:::"
                 - !Ref S3Bucket
+        - Action:
+          - "s3:GetObject"
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ""
+            -
+              - "arn:aws:s3:::"
+              - "space-solutions-"
+              - "eu-west-1"
+              - "/*"
+        - Action:
+          - "s3:ListBucket"
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ""
+            -
+              - "arn:aws:s3:::"
+              - "space-solutions-"
+              - "eu-west-1"
+              - "/*"
 
       Roles:
       - Ref: InstanceRole
@@ -369,7 +378,6 @@ Resources:
 
   # EC2 instance with processing software installed
   ProcessorInstance:
-    Condition: NasaLicenceAccepted
     Type: AWS::EC2::Instance
     DependsOn:
       - InstanceSecurityGroup
@@ -512,11 +520,17 @@ Resources:
               systemctl enable start-ipopp && \
               systemctl daemon-reload
 
+              echo '========================================='
+              echo "Installing IPOPP"
+              echo '========================================='
+              runuser -l ipopp -c "/opt/aws/groundstation/bin/install-ipopp.sh space-solutions-eu-west-1 eu-west-1"
+
               echo "Sending completion SNS notification"
             
-              export MESSAGE="IPOPP setup requires manual intervention. Please log into the processor instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
+              export MESSAGE="Initial IPOPP instance configuration complete. You must now start the instance and configure the IPOPP SPAs manually."
               aws sns publish --topic-arn ${SNSTopicArn} --message "$MESSAGE" --region ${AWS::Region}
 
-              echo "IPOPP setup requires manual intervention. Please log into this instance via VNC and download the IPOPP software package from NASA DRL. Navigate to the DRL IPOPP download page (https://directreadout.sci.gsfc.nasa.gov/?id=dspContent&cid=347&type=software) and follow the instructions under the Installation heading. Refer to the Earth Observation Guide for further details."
+              echo "Shutting down the EC2 instance"
+              shutdown -h now
 
             - SNSTopicArn: !Ref SNSTopic

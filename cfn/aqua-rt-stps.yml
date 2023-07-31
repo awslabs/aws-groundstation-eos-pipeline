@@ -332,8 +332,8 @@ Resources:
             - ""
             -
               - "arn:aws:s3:::"
-              - "groundstation-customer-assets-"
-              - !Ref "AWS::Region"
+              - "space-solutions-"
+              - "eu-west-1"
               - "/*"
 
         - Action:
@@ -353,8 +353,8 @@ Resources:
             - ""
             -
               - "arn:aws:s3:::"
-              - "groundstation-customer-assets-"
-              - !Ref "AWS::Region"
+              - "space-solutions-"
+              - "eu-west-1"
               - "/*"
       Roles:
       - Ref: InstanceRole
