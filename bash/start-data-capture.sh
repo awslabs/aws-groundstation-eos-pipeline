@@ -181,7 +181,7 @@ else
   else
     echo "$NOW	~/rt-stps/${LEAPSEC_FILE} not found. Getting latest leapsec file (${LEAPSEC_FILE}) from nasa.gov"
   	cd ~/rt-stps
-  	curl https://is.sci.gsfc.nasa.gov/ancillary/temporal/${LEAPSEC_FILE} -o ${LEAPSEC_FILE} || handleError "Error code ${?}. Failed to get leapsec file from https://is.sci.gsfc.nasa.gov/ancillary/temporal/${LEAPSEC_FILE}" "WARNING"
+  	curl ftp://is.sci.gsfc.nasa.gov/ancillary/temporal/${LEAPSEC_FILE} -o ${LEAPSEC_FILE} || handleError "Error code ${?}. Failed to get leapsec file from ftp://is.sci.gsfc.nasa.gov/ancillary/temporal/${LEAPSEC_FILE}" "WARNING"
   fi
 
 	export NOW=$(date '+%Y%m%d-%H:%M:%S')

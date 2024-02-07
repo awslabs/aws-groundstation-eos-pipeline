@@ -141,14 +141,14 @@ aws s3 sync $SOURCE $DEST --no-progress --region $REGION --exclude "*" \
 S3_DOWNLOAD_END=$(date '+%Y%m%d-%H:%M:%S')
 
 # Test if we have access to the NASA site for ancillary files
-echo "Testing access to https://is.sci.gsfc.nasa.gov"
-curl --silent https://is.sci.gsfc.nasa.gov > /dev/null
+echo "Testing access to ftp://is.sci.gsfc.nasa.gov"
+curl --silent ftp://is.sci.gsfc.nasa.gov > /dev/null
 EXIT_CODE=$?
 
 if [ $EXIT_CODE != 0 ] ; then
 
-  handleError "Error code $EXIT_CODE. Failed to connect to https://is.sci.gsfc.nasa.gov for IPOPP ancillary files" "WARNING"
-  echo "No access to https://is.sci.gsfc.nasa.gov Getting IPOPP ancillary files from S3"
+  handleError "Error code $EXIT_CODE. Failed to connect to ftp://is.sci.gsfc.nasa.gov for IPOPP ancillary files" "WARNING"
+  echo "No access to ftp://is.sci.gsfc.nasa.gov Getting IPOPP ancillary files from S3"
 
   TODAY=$(date '+%Y%m%d')
   LEAPSEC_FILE=leapsec.${TODAY}00.dat
@@ -162,7 +162,7 @@ if [ $EXIT_CODE != 0 ] ; then
 
 else
 
-  echo "Connection to https://is.sci.gsfc.nasa.gov OK"
+  echo "Connection to ftp://is.sci.gsfc.nasa.gov OK"
 
 fi
 
