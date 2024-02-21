@@ -260,6 +260,7 @@ Enter parameters as follows:
 - SatelliteName: AQUA
 - SubnetId: 'A Public Subnet'
 - VpcId: 'Select the VPC containing the above public subnet'
+- ReceiverCloudFormationStackName: 'The name of the CloudFormation Stack that created the receiver instance'
 
 
 ##  Subscribe to the SNS topic
@@ -297,10 +298,10 @@ These last steps in the configuration of the IPOPP processor instance must be co
 
 ## Prerequisites
 
-Download and install the Tiger VNC Client from [here](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/).
-Or use the following quick-links for [Linux](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/tigervnc-1.12.0.x86_64.tar.gz/download),
-[Mac](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/TigerVNC-1.12.0.dmg/download)
-and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.12.0/vncviewer64-1.12.0.exe/download).
+Download and install the Tiger VNC Client from [here](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/).
+Or use the following quick-links for [Linux](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/tigervnc-1.13.1.x86_64.tar.gz/download),
+[Mac](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/TigerVNC-1.13.1.dmg/download)
+and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/vncviewer64-1.13.1.exe/download).
 
 ## VNC Setup - Linux / Mac
 

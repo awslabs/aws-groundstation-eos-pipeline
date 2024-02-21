@@ -74,6 +74,7 @@ Parameters:
       - m5d.4xlarge
       - c5.4xlarge
       - c5d.4xlarge
+      - c5.xlarge
       - m5.xlarge
 
   IpoppPassword:
@@ -98,7 +99,6 @@ Parameters:
     ConstraintDescription: "Must be a valid email adress"
 
   ReceiverCloudFormationStackName:
-  #ReceiverSNSTopicArn:
     Type: String
     Description: The name of the CloudFormation Stack that created the receiver instance. 
     Default: 'gs-receiver-aqua'
@@ -202,7 +202,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: index.handle_sns_event
-      Runtime: python3.7
+      Runtime: python3.9
       MemorySize: 128
       Timeout: 120
       Role: !GetAtt GsIpoppLambdaRole.Arn
