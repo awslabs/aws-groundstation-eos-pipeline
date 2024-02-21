@@ -78,7 +78,7 @@ Parameters:
     Type: String
     Description: Will store software and data received from Satellites.
     Default: "eo-pipeline-bucket"
-    AllowedPattern: "^[a-z0-9-]+$"
+    AllowedPattern: "^[a-z0-9-.]+$"
 
   NotificationEmail:
     Default: 'someone@somewhere.com'

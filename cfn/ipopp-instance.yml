@@ -98,7 +98,6 @@ Parameters:
     ConstraintDescription: "Must be a valid email adress"
 
   ReceiverCloudFormationStackName:
-  #ReceiverSNSTopicArn:
     Type: String
     Description: The name of the CloudFormation Stack that created the receiver instance. 
     Default: 'gs-receiver-aqua'
@@ -183,7 +182,6 @@ Resources:
       FunctionName: !Ref IpoppSnsHandlerLambda
       Principal: "sns.amazonaws.com"
       Action: "lambda:InvokeFunction"
-      #SourceArn: !Ref ReceiverSNSTopicArn
       SourceArn:
         Fn::ImportValue: !Sub "${ReceiverCloudFormationStackName}-SnsTopicArn"
 
@@ -192,7 +190,6 @@ Resources:
     Type: AWS::SNS::Subscription
     Properties:
       Endpoint: !GetAtt IpoppSnsHandlerLambda.Arn
-      #TopicArn: !Ref ReceiverSNSTopicArn
       TopicArn:
         Fn::ImportValue: !Sub "${ReceiverCloudFormationStackName}-SnsTopicArn"
       Protocol: 'lambda'
@@ -202,7 +199,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: index.handle_sns_event
-      Runtime: python3.7
+      Runtime: python3.12
       MemorySize: 128
       Timeout: 120
       Role: !GetAtt GsIpoppLambdaRole.Arn
