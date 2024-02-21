@@ -183,7 +183,6 @@ Resources:
       FunctionName: !Ref IpoppSnsHandlerLambda
       Principal: "sns.amazonaws.com"
       Action: "lambda:InvokeFunction"
-      #SourceArn: !Ref ReceiverSNSTopicArn
       SourceArn:
         Fn::ImportValue: !Sub "${ReceiverCloudFormationStackName}-SnsTopicArn"
 
@@ -192,7 +191,6 @@ Resources:
     Type: AWS::SNS::Subscription
     Properties:
       Endpoint: !GetAtt IpoppSnsHandlerLambda.Arn
-      #TopicArn: !Ref ReceiverSNSTopicArn
       TopicArn:
         Fn::ImportValue: !Sub "${ReceiverCloudFormationStackName}-SnsTopicArn"
       Protocol: 'lambda'
