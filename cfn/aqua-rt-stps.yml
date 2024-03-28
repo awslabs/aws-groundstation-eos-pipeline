@@ -626,7 +626,7 @@ Resources:
           SpectrumConfig:
             Bandwidth:
               Units: "MHz"
-              Value: 30
+              Value: 15
             CenterFrequency:
               Units: "MHz"
               Value: 8160
