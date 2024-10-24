@@ -2,13 +2,17 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 PDX-License-Identifier: MIT-0
 
-#	Implementing an Automated Ground Station EOS pipeline
+#   AQUA Satellite End of Life 
+
+Effective November 30 2024, AWS Ground Station will no longer support the AQUA satellite due to its degraded data quality and unpredictable mission scheduling as it approaches the end of its operational life. Please visit the [Automated Earth observation using AWS Ground Station Amazon S3 data delivery](https://github.com/aws-samples/aws-groundstation-s3-data-delivery) repository that uses the JPSS-1 satellite to learn about using AWS Ground Station for Earth observation applications.
+
+##	Implementing an Automated Ground Station EOS pipeline
 
 Following this guide results in the implementation of an automated solution that downloads and processes data received from a satellite via the AWS GroundStation service.
 
 This is the technical guide for the [Earth observation using AWS Ground Station blog post](https://aws.amazon.com/blogs/publicsector/earth-observation-using-aws-ground-station/).
 
-# Solution Overview
+## Solution Overview
 
 ![Solution Diagram](GroundStation-EOS-v2.0.png "Solution Diagram")
 
@@ -28,7 +32,7 @@ The solution operates as follows:
 To summarize, by scheduling a satellite contact in AWS GroundStation, steps 1-10 are automatically completed, which result in the data being made available via the S3 bucket.
 If you subscribe to the SNS notifications, you will also receive emails with the output of the processing jobs.
 
-# Earth Observation Science Data Levels
+## Earth Observation Science Data Levels
 
 Earth Observation data products are most commonly described using levels 0-4 provided by NASA.
 The levels are summarized below. For more information click [here](https://science.nasa.gov/earth-science/earth-science-data/data-processing-levels-for-eosdis-data-products).
@@ -39,15 +43,15 @@ The levels are summarized below. For more information click [here](https://scien
 - Level 3: Data mapped onto uniform space-time grid scales
 - Level 4: Model output or results from deeper analysis of lower-level data, often using data from multiple measurements
 
-#	Prerequisites
+##	Prerequisites
 ---
 
-##  AWS CLI Configured
+###  AWS CLI Configured
 
 [Install the latest AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) and [configure it](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config) with an IAM User role with privileges to the AWS Account you want to use.
 If in doubt, use admin for testing, but create a Least Privileged Access (LPA) IAM user/role for any other environments.
 
-##  Ground Station setup in your AWS Account
+###  Ground Station setup in your AWS Account
 
 Send an email to aws-groundstation@amazon.com with the following details:
 - Satellite NORAD ID: 27424 (AQUA)
@@ -55,16 +59,16 @@ Send an email to aws-groundstation@amazon.com with the following details:
 - AWS Regions you want to use the Ground Station Service
 - AWS Regions you want to downlink the data to, normally the same as above
 
-##	A VPC with public subnets, plus an SSH key for accessing EC2 instance(s)
+###	A VPC with public subnets, plus an SSH key for accessing EC2 instance(s)
 
 Make sure at minimum you have one SSH key and one VPC with an attached IGW and one public subnet. 
 You can use the default VPC provided in the region. Follow [these instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair) to create an EC2 SSH key in the region that you will be deploying your EC2 resources. 
 
-##  Create working directory
+###  Create working directory
 
 Execute these commands on your local machine command line. 
 
-### Linux / Mac
+#### Linux / Mac
 
 ```bash
 export WORKING_DIR='/Users/User/Downloads/ipopp-test'
@@ -72,7 +76,7 @@ mkdir -p $WORKING_DIR
 cd $WORKING_DIR
 ```
 
-### Windows
+#### Windows
 
 ```bash
 set WORKING_DIR=\Users\User\Downloads\ipopp-test
@@ -80,7 +84,7 @@ mkdir %WORKING_DIR%
 cd %WORKING_DIR%
 ```
 
-## Clone this repo
+### Clone this repo
 Install Git by following [these instructions](https://github.com/git-guides/install-git).
 
 ```bash
@@ -89,14 +93,14 @@ git clone https://github.com/awslabs/aws-groundstation-eos-pipeline.git
 
 Alternatively, you can download this GitHub repository by clicking Code -> Download ZIP at the top of this page. 
 
-#	Receiver Instance - RT-STPS
+##	Receiver Instance - RT-STPS
 ---
 
 Follow the steps below to configure AWS GroundStation to process data from the AQUA Satellite and create an EC2 instance to receive the data.
 The EC2 instance receives the data, processes it using NASA's RealTime Satellite Telemetry Processing Software (RT-STPS) and uploads the data to S3.
 Once the data is uploaded an SNS Notification is sent which triggers the IPOPP Processing node which creates the usable data products.
 
-##	Create S3 bucket
+###	Create S3 bucket
 
 Setup some variables, then create the new S3 bucket.
 Create this in the region where your EC2 downlink resources will be. 
@@ -105,7 +109,7 @@ Edit the REGION and S3_BUCKET variables below, then execute the code.
 
 Execute these commands on your local machine command line. 
 
-### Linux / Mac
+#### Linux / Mac
 
 ```bash
 export REGION=your-aws-region
@@ -115,7 +119,7 @@ export S3_BUCKET=your-bucket-name
 aws s3 mb s3://${S3_BUCKET} --region $REGION
 ```
 
-### Windows
+#### Windows
 
 ```bash
 set REGION=your-aws-region
@@ -124,13 +128,13 @@ set S3_BUCKET=your-bucket-name
 aws s3 mb s3://%S3_BUCKET% --region %REGION%
 ```
 
-## Copy the data capture application to the new bucket
+### Copy the data capture application to the new bucket
 
 The data capture application files (receivedata.py, awsgs.py, start-data-capture.sh) are all found in this repository. 
 
 Execute these commands on your local machine command line. 
 
-### Linux / Mac
+#### Linux / Mac
 
 ```bash
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/python/receivedata.py s3://${S3_BUCKET}/software/data-receiver/receivedata.py --region $REGION 
@@ -138,7 +142,7 @@ aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/python/awsgs.py s3://${S3_
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/start-data-capture.sh s3://${S3_BUCKET}/software/data-receiver/start-data-capture.sh --region $REGION 
 ```
 
-### Windows
+#### Windows
 
 ```bash
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\python\receivedata.py s3://%S3_BUCKET%/software/data-receiver/receivedata.py --region %REGION% 
@@ -146,7 +150,7 @@ aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\python\awsgs.py s3://%S3_
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\start-data-capture.sh s3://%S3_BUCKET%/software/data-receiver/start-data-capture.sh --region %REGION% 
 ```
 
-## Create the CloudFormation Stack for the receiver instance
+### Create the CloudFormation Stack for the receiver instance
 
 Create a CFN stack using the template: aqua-rt-stps.yml. [Learn how to create a CFN stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html). On the [stack creation console](https://console.aws.amazon.com/cloudformation) click Create Stack -> With New Resource. Then select the "Template is ready" radio button and "Upload a template file" radio button. Upload the aqua-rt-stps.yml file here. Do not edit the aqua-rt-stps.yml file manually!
 
@@ -166,12 +170,12 @@ Enter parameters as follows in the CloudFormation console:
 - SubnetId: 'a public subnet'
 - VpcId: 'the VPC containing the above public subnet'
 
-##  Subscribe to the SNS topic
+###  Subscribe to the SNS topic
 
 During the creation of the CloudFormation stack an SNS topic is created.
 To receive email messages you must subscribe to the topic by clicking the link sent to the email address specified when creating the stack.
 
-##  Watch the progress
+###  Watch the progress
 
 Once the EC2 instance is created the required software is installed and configured.
 You can watch this progress by connecting to the instance using [SSH for Linux/Mac users](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html) or by using [PuTTY for Windows users](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html). The username is "ec2-user". Example command for Linux/Mac to be run on your local machine: 
@@ -190,7 +194,7 @@ tail -F /var/log/user-data.log
 
 **Note2:** For this solution to work correctly, the EC2 instance must either be shutdown a few minutes before the contact, or you must manually start the data capture application. The easy option: Shutdown/Stop the EC2 instance :).
 
-##  Summary
+###  Summary
 
 You now have the following created in your AWS Account:
 
@@ -204,7 +208,7 @@ You now have the following created in your AWS Account:
 - GroundStation CloudWatch events
 - A Lambda function which auto starts the EC2 instance during a PREPASS with a configured contact
 
-#	Processor Instance Creation - IPOPP
+##	Processor Instance Creation - IPOPP
 ---
 
 Follow these steps to create the IPOPP instance which takes the data produced by the receiver node (RT-STPS) to create usable level 2 earth observation data products.
@@ -215,33 +219,33 @@ export REGION=your-aws-region
 export S3_BUCKET=your-bucket-name
 ```
 
-### Windows
+#### Windows
 
 ```bash
 set REGION=your-aws-region
 set S3_BUCKET=your-bucket-name
 ```
 
-##  Copy the IPOPP files to the new bucket
+###  Copy the IPOPP files to the new bucket
 The IPOPP scripts (ipopp-ingest.sh, install-ipopp.sh) are found in this repository. 
 
 Execute these commands on your local machine command line.
 
-### Linux / Mac
+#### Linux / Mac
 
 ```bash
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/ipopp-ingest.sh s3://${S3_BUCKET}/software/IPOPP/ipopp-ingest.sh --region $REGION 
 aws s3 cp $WORKING_DIR/aws-groundstation-eos-pipeline/bash/install-ipopp.sh s3://${S3_BUCKET}/software/IPOPP/install-ipopp.sh --region $REGION 
 ```
 
-### Windows
+#### Windows
 
 ```bash
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\ipopp-ingest.sh s3://%S3_BUCKET%/software/IPOPP/ipopp-ingest.sh --region %REGION% 
 aws s3 cp %WORKING_DIR%\aws-groundstation-eos-pipeline\bash\install-ipopp.sh s3://%S3_BUCKET%/software/IPOPP/install-ipopp.sh --region %REGION% 
 ```
 
-##  Create the IPOPP Instance CloudFormation Stack
+###  Create the IPOPP Instance CloudFormation Stack
 
 Create a CFN stack using the template: ipopp-instance.yml. Follow the same procedure as for the aqua-rt-stps.yml file. Do not edit the ipopp-instance.yml file manually!
 
@@ -263,12 +267,12 @@ Enter parameters as follows:
 - ReceiverCloudFormationStackName: 'The name of the CloudFormation Stack that created the receiver instance'
 
 
-##  Subscribe to the SNS topic
+###  Subscribe to the SNS topic
 
 During the creation of the CloudFormation stack an SNS topic is created.
 To receive email messages you must subscribe to the topic by clicking the link sent to the email address specified when creating the stack.
 
-##  Watch the progress  
+###  Watch the progress  
 
 The the EC2 instance set up is automatic. It includes the installation of the IPOPP software for image analysis. You can follow the progress of the automatic part over SSH by running the following commands. This takes about 1 hour to complete. 
 
@@ -282,7 +286,7 @@ Check the user-data logfile:
 tail -F /var/log/user-data.log
 ```
 
-##  Summary
+###  Summary
 
 You now have the following created in your AWS Account:
 
@@ -290,20 +294,20 @@ You now have the following created in your AWS Account:
 - An SNS topic to notify processing completion
 - A Lambda function to auto-start the IPOPP instance, triggered by the receiver SNS Topic
 
-#	Processor Instance Configuration - IPOPP
+##	Processor Instance Configuration - IPOPP
 ---
 
 These last steps in the configuration of the IPOPP processor instance must be completed manually.   
 
 
-## Prerequisites
+### Prerequisites
 
 Download and install the Tiger VNC Client from [here](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/).
 Or use the following quick-links for [Linux](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/tigervnc-1.13.1.x86_64.tar.gz/download),
 [Mac](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/TigerVNC-1.13.1.dmg/download)
 and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.13.1/vncviewer64-1.13.1.exe/download).
 
-## VNC Setup - Linux / Mac
+### VNC Setup - Linux / Mac
 
 1.	Run the command below to connect to the EC2 instance from your local machine using SSH and tunnel the VNC traffic over the SSH session.
 
@@ -315,7 +319,7 @@ and [64 bit Windows](https://sourceforge.net/projects/tigervnc/files/stable/1.13
 3.	When prompted, enter the ipopp password you provided to the CloudFormation template in the earlier step
 
 
-##	VNC Setup - Windows
+###	VNC Setup - Windows
 
 1.	Download the open source ssh client Putty from [here](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 2.	Open Putty and enter the public IP of the EC2 instance in the Session->Host Name (or IP Address) field.
@@ -338,7 +342,7 @@ sudo systemctl stop vncserver.service
 sudo systemctl start vncserver.service
 ```
 
-##  IPOPP SPA Configuration
+###  IPOPP SPA Configuration
 
 By default, IPOPP creates data products which are Level 1A and Level 1B only.
 These data products are great to use for further processing using software such as polar2grid, but if we want IPOPP to create usable Level 2 products we must enable additional IPOPP Software Processing Algorithms (SPAs).
@@ -361,16 +365,16 @@ Perform the following steps within the VNC session on the IPOPP EC2 instance.
 
 Once this configuration process is done it does not need to be done again. IPOPP will now automatically start the additional SPAs each time an ingest is done.
 
-# Activating the Earth Observation pipeline
+## Activating the Earth Observation pipeline
 
 The EC2 instances are automatically started and stopped as required. To allow this to happen you must now stop all EC2 instances.
 
-## Scheduling a live AQUA contact
+### Scheduling a live AQUA contact
 
 Open up the GroundStation console and schedule a contact as required. Ensure you select the correct mission profile and satellite.
 The entire process will be triggered by the GroundStation PREPASS CloudWatch event as described in the Solution overview section.
 
-## Manually triggering processing 
+### Manually triggering processing 
 
 Once the configuration process is completed, it doesn’t need to be repeated. IPOPP automatically starts the additional SPAs with each ingest. If you capture data from additional satellite passes, you can trigger the retrieval of Level 0 data from S3 and the IPOPP processing by either rebooting the EC2 instance or running the following command on the instance:
 
@@ -387,7 +391,7 @@ After executing the ipopp-ingest script, the progress can be tracked with the fo
 tail -F /opt/aws/groundstation/bin/ipopp-ingest.log
 ```
 
-# Viewing the files created
+## Viewing the files created
 
 When you captured data from a live satellite both instances will automatically shut down when they are finished processing.
 You will find an email in your inbox with a summary from each node.
@@ -408,7 +412,7 @@ Level 3 KMZ package created using the polar2grid software and imported into Goog
 
 The data for both images was captured when the AQUA satellite passed over the AWS Ground Station in Bahrain. These images are a snapshot of the actual data available from the AQUA satellite. Other data includes sea and land surface temperatures, aerosol levels in the atmosphere, chlorophyll concentrations in the sea (which are indicators of marine life), and more.
 
-# Known Errors
+## Known Errors
 ---
 
 1. To detect and copy created data products to the S3 bucket, ipopp-ingest.sh simply calls "aws s3 sync" in a loop. Sometimes this command detects a file and tries to copy it when it is still being written to by the IPOPP process. This causes the s3 sync command to return a non-zero return code.
